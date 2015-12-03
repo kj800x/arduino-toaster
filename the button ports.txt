@@ -1,0 +1,10 @@
+pin 10 (closest to the edge of the button board)
+
+
+10- ground
+9 - "right"
+8- "AV" or "left" (like both connect this pin and ground)
+7 - the blue button at the end
+6- ground again
+5- nothing??
+4-1 are probably the LED and the black sensor.

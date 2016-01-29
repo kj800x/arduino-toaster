@@ -1,5 +1,8 @@
 // millis() returns the number of milliseoncds since the arduino began running the current program. returns an unsigned long.
 
+// Author - Tom Harmon
+// Thanks Tom! -KJ
+
 int time_zero;
 int& delta_time
 

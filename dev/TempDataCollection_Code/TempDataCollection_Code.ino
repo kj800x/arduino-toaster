@@ -111,12 +111,12 @@ void checktemp()
       digitalWrite(FanPin, HIGH);
     }
  }
-  if (avTemp >= 150 && avTemp < 220)
+  if (avTemp >= 150 && avTemp < 200)
   {
      if(Up)
      {
       digitalWrite(SSRPin, HIGH);
-      delay(1300);
+      delay(2000);
       digitalWrite(SSRPin, LOW);
       delay(500);
      }
@@ -126,13 +126,13 @@ void checktemp()
     }
     
   }
-  if (avTemp >= 220 && avTemp < 240)
+  if (avTemp >= 200 && avTemp < 225)
   {
     if(Up)
     {
       digitalWrite(SSRPin, HIGH);
       digitalWrite(FanPin, HIGH);
-      delay(500);
+      delay(1000);
       digitalWrite(SSRPin, LOW);
       delay(500);
       if(avTemp == 235)

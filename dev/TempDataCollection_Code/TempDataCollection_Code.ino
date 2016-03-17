@@ -4,12 +4,12 @@
 // Data wire is plugged into port 2 on the Arduino
 #define ONE_WIRE_BUS 2
 #define TEMPERATURE_PRECISION 9
-const int SSRPin =  13;  
+const int SSRPin =  12;  
 const int LEDPin = 6;
-const int FanPin = 12;
-double time = millis()*1000;
+const int FanPin = 11;
+double time;
 double avTemp;
-boolean Up;
+boolean UP;
 
 // Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
 OneWire oneWire(ONE_WIRE_BUS);
@@ -23,7 +23,7 @@ DeviceAddress insideThermometer, outsideThermometer;
 void setup(void)
 {
   // start serial port
-  Up = true;
+  UP = true;
   avTemp = 0;
   Serial.begin(9600);
   Serial.println("Dallas Temperature IC Control Library Demo");
@@ -80,65 +80,62 @@ void printTemperature(DeviceAddress deviceAddress)
   Serial.print(DallasTemperature::toFahrenheit(tempC));
 }
 //function to define profile
-void checktemp()
+void checktemp()//values for run from cold oven
 {
     avTemp = (sensors.getTempC(insideThermometer) + sensors.getTempC(outsideThermometer))/2;
     if (avTemp < 90)
     {
-     if(Up)
+     if(UP)
     { 
       digitalWrite(SSRPin, HIGH);
-      delay(1500);
+      delay(2000);
       digitalWrite(SSRPin, LOW);
       delay(5);
     }
-     if(!Up)
+     if(!UP)
     {
       digitalWrite(FanPin, HIGH);
     }
     }
    if (avTemp >= 100 && avTemp< 150)
    {    
-    if(Up)
+    if(UP)
     {
-      digitalWrite(SSRPin, HIGH);
-      delay(750);
+      digitalWrite(SSRPin, HIGH);//153 seconds
+      delay(1500);
       digitalWrite(SSRPin, LOW);
-      delay(500); 
+      delay(200); 
     }
-     if(!Up)
+     if(!UP)
     {
       digitalWrite(FanPin, HIGH);
     }
  }
-  if (avTemp >= 150 && avTemp < 200)
+  if (avTemp >= 150 && avTemp < 210)
   {
-     if(Up)
+     if(UP)
      {
       digitalWrite(SSRPin, HIGH);
-      delay(2000);
-      digitalWrite(SSRPin, LOW);
-      delay(500);
      }
-    if(!Up)
+    if(!UP)
     {
       digitalWrite(FanPin, HIGH);
     }
     
   }
-  if (avTemp >= 200 && avTemp < 225)
+  if (avTemp >= 210 && avTemp < 220)
   {
-    if(Up)
+    if(UP)
     {
       digitalWrite(SSRPin, HIGH);
       digitalWrite(FanPin, HIGH);
-      delay(1000);
+      delay(1700);
       digitalWrite(SSRPin, LOW);
-      delay(500);
-      if(avTemp == 235)
-      Up = false;
+      delay(100);
+      if(avTemp == 210)
+      UP = false;
     }
-    if(!Up)
+    if(!UP)
     {
       digitalWrite(FanPin, HIGH);
     }    
@@ -156,16 +153,20 @@ void checkTempTest()
     avTemp = (sensors.getTempC(insideThermometer) + sensors.getTempC(outsideThermometer))/2;
     if (avTemp < 90)
     {
-     if(Up)
+     if(UP)
     { 
       digitalWrite(SSRPin, HIGH);
       delay(1500);
       digitalWrite(SSRPin, LOW);
       delay(5);
       if (avTemp == 90)
-      Up = false;
+     {
+       UP = false;
+       Serial.write("False");
+       Serial.write(UP);
+     }
     }
-     if(!Up)
+     if(!UP)
     {
       digitalWrite(FanPin, HIGH);
     }
@@ -208,15 +209,18 @@ void loop(void)
   sensors.requestTemperatures();
   //Serial.println("DONE");
   
-checktemp();
+checkTempTest();
 
   // print the device information
+  time = millis()/1000.0;
   Serial.print(time);
   Serial.print(" ");
-  printData(insideThermometer);
+/*  printData(insideThermometer);
   Serial.print(" ");
   printData(outsideThermometer);
+  Serial.print(" ");*/
+  Serial.print(avTemp);
   Serial.print(" ");
-  Serial.print(avTemp); 
+  Serial.print(UPUP);
   Serial.println();
 }

@@ -144,6 +144,9 @@ void AddPoint(struct List *list)
   struct Point *point;
   point = malloc(sizeof(struct Point));
 
+  // fgets & scanf will not work
+  // use whatever input method fits your fancy
+  // preferably one that works with the buttons
   printf("Enter temp: ");
   fgets(point->temp, 20, stdin);
   printf("Enter t: ");

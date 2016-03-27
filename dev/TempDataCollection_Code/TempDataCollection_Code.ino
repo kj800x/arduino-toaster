@@ -120,8 +120,7 @@ void checktemp()//values for run from cold oven
     if(!UP)
     {
       digitalWrite(FanPin, HIGH);
-    }
-    
+    }    
   }
   if (avTemp >= 210 && avTemp < 220)
   {
@@ -221,6 +220,6 @@ checkTempTest();
   Serial.print(" ");*/
   Serial.print(avTemp);
   Serial.print(" ");
-  Serial.print(UPUP);
+  Serial.print(UP);
   Serial.println();
 }

@@ -1,6 +1,12 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
+/*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%**%*%*%*%*%*%*%*%*%*%/
+//Settings For Arduino IDE
+//Board: Arduino Micro
+//Programmer: AVR ISP
+/*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%**%*%*%*%*%*%*%*%*%*%/
+
 // Data wire is plugged into port 2 on the Arduino
 #define ONE_WIRE_BUS 2
 #define TEMPERATURE_PRECISION 9
@@ -95,6 +101,7 @@ void checktemp()//values for run from cold oven
      if(!UP)
     {
       digitalWrite(FanPin, HIGH);
+      digitalWrite(SSRPin, LOW);
     }
     }
    if (avTemp >= 100 && avTemp< 150)
@@ -104,11 +111,12 @@ void checktemp()//values for run from cold oven
       digitalWrite(SSRPin, HIGH);//153 seconds
       delay(1500);
       digitalWrite(SSRPin, LOW);
-      delay(200); 
+      delay(100); 
     }
      if(!UP)
     {
       digitalWrite(FanPin, HIGH);
+      digitalWrite(SSRPin, LOW);
     }
  }
   if (avTemp >= 150 && avTemp < 210)
@@ -120,6 +128,7 @@ void checktemp()//values for run from cold oven
     if(!UP)
     {
       digitalWrite(FanPin, HIGH);
+      digitalWrite(SSRPin, LOW);
     }    
   }
   if (avTemp >= 210 && avTemp < 220)
@@ -137,6 +146,7 @@ void checktemp()//values for run from cold oven
     if(!UP)
     {
       digitalWrite(FanPin, HIGH);
+      digitalWrite(SSRPin, LOW);
     }    
   }
    if (avTemp >= 240)

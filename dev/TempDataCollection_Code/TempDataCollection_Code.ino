@@ -5,7 +5,7 @@
 //Settings For Arduino IDE
 //Board: Arduino Micro
 //Programmer: AVR ISP
-/*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%**%*%*%*%*%*%*%*%*%*%/
+/*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%**%*%*%*%*%*%*%*%*%*%*/
 
 // Data wire is plugged into port 2 on the Arduino
 #define ONE_WIRE_BUS 2
@@ -34,6 +34,8 @@ void setup(void)
   Serial.begin(9600);
   Serial.println("Dallas Temperature IC Control Library Demo");
   pinMode(SSRPin, OUTPUT);
+  pinMode(FanPin, OUTPUT);
+  pinMode(LEDPin, OUTPUT);
 
   // Start up the library
   sensors.begin();

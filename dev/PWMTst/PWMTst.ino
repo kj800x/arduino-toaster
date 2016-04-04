@@ -29,11 +29,11 @@ DeviceAddress insideThermometer, outsideThermometer;
 void setup(void)
 {
   // start serial port
-  UP = true;
   avTemp = 0;
   Serial.begin(9600);
   Serial.println("Dallas Temperature IC Control Library Demo");
   pinMode(SSRPin, OUTPUT);
+  pinMode(FanPin, OUTPUT);
 
   // Start up the library
   sensors.begin();
@@ -113,13 +113,21 @@ void printAddress(DeviceAddress deviceAddress)
     Serial.print(deviceAddress[i], HEX);
   }
 }
-void loop(void)
+void PWMTest()
 {
   avTemp = (sensors.getTempC(insideThermometer) + sensors.getTempC(outsideThermometer))/2;
   if (avTemp <= 40)
+  {analogWrite(SSRPin,128);}
+  else if (avTemp <= 100 && avTemp > 40)
   {analogWrite(SSRPin,50);}
-/  else {analogWrite(SSRPin,0);}
-   time = millis()/1000.0;
+  else {analogWrite(SSRPin,0);}
+}
+void loop(void)
+{
+  sensors.requestTemperatures();
+  PWMTest();
+  time = millis()/1000.0;
+   
   Serial.print(time);
   Serial.print(" ");
 /*  printData(insideThermometer);
@@ -127,8 +135,6 @@ void loop(void)
   printData(outsideThermometer);
   Serial.print(" ");*/
   Serial.print(avTemp);
-  Serial.print(" ");
-  Serial.print(UP);
   Serial.println();
 }
 

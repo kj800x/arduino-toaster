@@ -91,7 +91,7 @@ void printTemperature(DeviceAddress deviceAddress)
 void checktemp()//values for run from cold oven
 {
     avTemp = (sensors.getTempC(insideThermometer) + sensors.getTempC(outsideThermometer))/2;
-    if (avTemp < 100)
+ /*   if (avTemp < 100)
     {
      if(UP)
     { 
@@ -121,8 +121,8 @@ void checktemp()//values for run from cold oven
       digitalWrite(SSRPin, LOW);
       delay(100);
     }
- }
-  if (avTemp >= 150 && avTemp < 210)
+ }*/
+  if (avTemp < 210)
   {
      if(UP)
      {
@@ -237,8 +237,6 @@ checktemp();
   Serial.print(" ");*/
   Serial.print(avTemp);
   Serial.print(" ");
-  if(sensors.getTempC(insideThermometer) - sensors.getTempC(outsideThermometer)>15.0||sensors.getTempC(insideThermometer) - sensors.getTempC(outsideThermometer)<-15.0)
-  Serial.print("ERROR ");
   Serial.print(UP);
   Serial.println();
 }

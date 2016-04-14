@@ -75,6 +75,12 @@ void setup(void)
   Serial.print("Device 1 Resolution: ");
   Serial.print(sensors.getResolution(outsideThermometer), DEC); 
   Serial.println();
+  
+  Serial1.begin(19200);
+  Serial1.write(17);
+  
+  Serial1.write(12);
+  Serial1.write("Starting Up");
 }
 
 // function to print the temperature for a device
@@ -83,9 +89,11 @@ void printTemperature(DeviceAddress deviceAddress)
   float tempC = sensors.getTempC(deviceAddress);
   //Serial.print("Temp C: ");
   Serial.print(tempC);
- // Serial.print(" Temp F: ");
- Serial.print(" ");
+  // Serial.print(" Temp F: ");
+  Serial.print(" ");
   Serial.print(DallasTemperature::toFahrenheit(tempC));
+  Serial1.write(12);
+  Serial1.print(String(DallasTemperature::toFahrenheit(tempC), 2));
 }
 //function to define profile
 void checktemp()//values for run from cold oven

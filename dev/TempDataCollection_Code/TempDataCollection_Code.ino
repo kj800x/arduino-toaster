@@ -93,7 +93,8 @@ void printTemperature(DeviceAddress deviceAddress)
   Serial.print(" ");
   Serial.print(DallasTemperature::toFahrenheit(tempC));
   Serial1.write(12);
-  Serial1.print(String(DallasTemperature::toFahrenheit(tempC), 2));
+  Serial1.write("Test");//String(DallasTemperature::toFahrenheit(tempC), 2));
+  
 }
 //function to define profile
 void checktemp()//values for run from cold oven
@@ -235,6 +236,10 @@ void loop(void)
   
 checktemp();
 
+
+  Serial1.write(12);
+  Serial1.print(String(avTemp, 2));
+  
   // print the device information
   time = millis()/1000.0;
   Serial.print(time);

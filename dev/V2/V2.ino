@@ -102,7 +102,7 @@ void printTemperature(DeviceAddress deviceAddress)
 void checktemp()//values for run from cold oven
 {
     avTemp = (sensors.getTempC(insideThermometer) + sensors.getTempC(outsideThermometer))/2;
-    if(avTemp >= 220)
+    if(avTemp >= 235)
     {
       UP = false;
     }
@@ -131,7 +131,7 @@ void checktemp()//values for run from cold oven
       delay(2000);
       digitalWrite(SSRPin, LOW);
       delay(10); 
-      stage = "SOAK"
+      stage = "SOAK";
     }
      else if(!UP)
     {
@@ -141,7 +141,7 @@ void checktemp()//values for run from cold oven
       stage = "COOL";
     }
  }
-  else if (avTemp >= 150 && avTemp < 210)
+  else if (avTemp >= 150 && avTemp < 220)
   {
      if(UP)
      {
@@ -151,19 +151,18 @@ void checktemp()//values for run from cold oven
      }
     else if(!UP)
     {
-      digitalWrite(FanPin, LOW);
+      digitalWrite(FanPin, HIGH);
       digitalWrite(SSRPin, LOW);
       delay(100);
       stage = "COOL";
     }    
   }
-  else if (avTemp >= 210 && avTemp < 220)
+  else if (avTemp >= 220 && avTemp < 240)
   {
     if(UP)
     {
       digitalWrite(SSRPin, HIGH);
-      digitalWrite(FanPin, HIGH);
-      delay(1500);
+      delay(2000);
       digitalWrite(SSRPin, LOW);
       delay(100);
       stage = "PEAK";

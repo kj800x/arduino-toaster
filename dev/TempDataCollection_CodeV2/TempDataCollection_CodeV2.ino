@@ -13,10 +13,13 @@
 const int SSRPin =  12;  
 const int LEDPin = 6;
 const int FanPin = 11;
+const int butt = 3;  
 double time;
 double avTemp;
 boolean UP;
 String stage;
+int buttonState;
+int buttonPress;
 
 // Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
 OneWire oneWire(ONE_WIRE_BUS);
@@ -32,12 +35,15 @@ void setup(void)
   // start serial port
   UP = true;
   avTemp = 0;
+  buttonState = 0;
+  buttonPress= 0;
   stage = "";
   Serial.begin(9600);
   Serial.println("Dallas Temperature IC Control Library Demo");
   pinMode(SSRPin, OUTPUT);
   pinMode(FanPin, OUTPUT);
   pinMode(LEDPin, OUTPUT);
+  pinMode(butt, INPUT); 
 
   // Start up the library
   sensors.begin();
@@ -187,7 +193,12 @@ void checktemp()//values for run from cold oven
 
 void checkTempTest()
 {
-    avTemp = (sensors.getTempC(insideThermometer) + sensors.getTempC(outsideThermometer))/2;
+//while(buttonPress==0)
+// Serial1.print("PUSH BTN TO STRT");
+// while(buttonPress>0)
+// {     
+//  if(buttonPress%2==1)
+  {avTemp = (sensors.getTempC(insideThermometer) + sensors.getTempC(outsideThermometer))/2;
    if (avTemp >= 90)
      {
        UP = false;
@@ -196,22 +207,26 @@ void checkTempTest()
     if (avTemp < 90)
     {
      if(UP)
-    { 
+     { 
       digitalWrite(SSRPin, HIGH);
       delay(1000);
       if (avTemp >= 90)
-     {
+      {
        UP = false;
        Serial.write("False");
        Serial.write(UP);
+      }
      }
-    }
      else if(!UP)
-    {
+     {
       digitalWrite(FanPin, HIGH);
       delay(100);
+     }
     }
-    }
+ // }
+ // if(buttonPress%2==0)
+ // delay(100);
+ }
 }
 // function to print a device's resolution
 void printResolution(DeviceAddress deviceAddress)
@@ -248,6 +263,12 @@ void loop(void)
   // request to all devices on the bus
   //Serial.print("Requesting temperatures...");
   sensors.requestTemperatures();
+/*  buttonState = digitalRead(buttonPin);
+  if (buttonState == HIGH) {     
+    // turn LED on:    
+    buttonPress ++; 
+    delay(1000);
+  }*/
   //Serial.println("DONE");
   
 checktemp();

@@ -32,6 +32,9 @@ int heatDutyOff = 0; // How many milliseconds to keep the heat off in the duty c
 // This global can be used throuought the code as the most recent temperature reading 
 double avTemp; // Stored in C
 
+// This global stores the current stage of the curve
+String stage;
+
 // Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
 OneWire oneWire(ONE_WIRE_BUS);
 
@@ -100,6 +103,7 @@ void applyProfile() {
         heatDutyOn = 2000;
         heatDutyOff = 5; // Duty cycle of [2000 ms on | 5 ms off]
         fanPowered = false;
+        stage = "PRHT";
       } else {
         profileStage++;
         stageStartTime = now;
@@ -111,30 +115,33 @@ void applyProfile() {
         heatDutyOn = 2000;
         heatDutyOff = 10; // Duty cycle of [2000 ms on | 10 ms off]
         fanPowered = false;
+        stage = "SOAK";
       } else {
         profileStage++;
         stageStartTime = now;
       }
       break; // End profileStage 2
     case 3:
-      if (avTemp < 210) { // While temp is less than 210 C
+      if (avTemp < 220) { // While temp is less than 220 C
         heatPowered = true;
         heatDutyOn = 100;
         heatDutyOff = 0; // Duty cycle of [100 ms on | 0 ms off] (never turns off)
         fanPowered = false;
+        stage = "RAMP";
       } else {
         profileStage++;
         stageStartTime = now;
       }
       break; // End profileStage 3
     case 4:
-      if (avTemp < 220) { // While temp is less than 220 C
+      if (avTemp < 235) { // While temp is less than 235 C
         heatPowered = true;
-        heatDutyOn = 1700;
-        heatDutyOff = 100; // Duty cycle of [1700 ms on | 100 ms off]
+        heatDutyOn = 2000;
+        heatDutyOff = 100; // Duty cycle of [2000 ms on | 100 ms off]
         fanPowered = true;
         fanDutyOn = 100;
         fanDutyOff = 0; // Duty cycle of [100 ms on | 0 ms off] (never turns off)
+        stage = "PEAK";
       } else {
         profileStage++;
         stageStartTime = now;
@@ -146,6 +153,7 @@ void applyProfile() {
         fanPowered = true;
         fanDutyOn = 100;
         fanDutyOff = 0; // Duty cycle of [100 ms on | 0 ms off] (never turns off)
+        stage = "COOL";
       } else {
         profileStage++;
         stageStartTime = now;
@@ -162,11 +170,16 @@ void applyProfile() {
 ////////// Display to LCD
 
 // Display the current temperature in Fahrenheit to the LCD
-// Used globals: avgTemp
+// Used globals: avgTemp, stage
 void displayToLCD() {
   Serial1.write(12);
   Serial1.print(String(DallasTemperature::toFahrenheit(avTemp), LCD_TEMPERATURE_DECIMALS));
   Serial1.print(" F");
+  if (DallasTemperature::toFahrenheit(avTemp) < 100) {
+    Serial1.print(" ");
+  } 
+  Serial1.print("    ");
+  Serial1.print(stage);
 }
 
 ////////// Log to USB Serial

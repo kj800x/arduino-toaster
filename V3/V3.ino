@@ -17,7 +17,8 @@
 const int SSRPin = 13;
 const int FanPin = 12;
 const int LCD_TEMPERATURE_DECIMALS = 2;
-const int logInterval = 1000; // In ms, set to 0 for lots of logs
+const int logInterval = 2500; // In ms, set to 0 for lots of logs
+const int tempInterval = 2500;
 
 // These globals can be modified in the code
 // They affect the duty cycles of the fan and the heat SSRs
@@ -28,6 +29,8 @@ int fanDutyOff = 0; // How many milliseconds to keep the fan off in the duty cyc
 boolean heatPowered = false;
 int heatDutyOn = 0; // How many milliseconds to keep the heat on in the duty cycle
 int heatDutyOff = 0; // How many milliseconds to keep the heat off in the duty cycle
+
+boolean drawAgain = false;
 
 // This global can be used throuought the code as the most recent temperature reading 
 double avTemp; // Stored in C
@@ -75,12 +78,25 @@ void setup() {
 }
 
 ////////// Collect Data
+long lastTempTime = -tempInterval;
+String err;
 
 // A function to collect thermometer readings and update the global variables
 // Set globals: avTemp
 void collectData() {
-  sensors.requestTemperatures();
-  avTemp = (sensors.getTempC(insideThermometer) + sensors.getTempC(outsideThermometer))/2;
+  unsigned long now = millis();
+  if (lastTempTime + tempInterval < now) {
+    sensors.requestTemperatures();
+    avTemp = (sensors.getTempC(insideThermometer) + sensors.getTempC(outsideThermometer))/2;
+    if ((sensors.getTempC(insideThermometer) - sensors.getTempC(outsideThermometer) > 10) || (sensors.getTempC(insideThermometer) - sensors.getTempC(outsideThermometer) < -10)) {
+      err = "ERROR";
+    } else {
+      err = "";
+    }
+    
+    lastTempTime = now;
+    drawAgain = true;
+  }
 }
 
 ////////// Apply Profile
@@ -172,14 +188,20 @@ void applyProfile() {
 // Display the current temperature in Fahrenheit to the LCD
 // Used globals: avgTemp, stage
 void displayToLCD() {
-  Serial1.write(12);
-  Serial1.print(String(DallasTemperature::toFahrenheit(avTemp), LCD_TEMPERATURE_DECIMALS));
-  Serial1.print(" F");
-  if (DallasTemperature::toFahrenheit(avTemp) < 100) {
-    Serial1.print(" ");
-  } 
-  Serial1.print("    ");
-  Serial1.print(stage);
+  if (drawAgain) {
+    Serial1.write(12);
+    Serial1.print(String(DallasTemperature::toFahrenheit(avTemp), LCD_TEMPERATURE_DECIMALS));
+    Serial1.print(" F");
+    if (DallasTemperature::toFahrenheit(avTemp) < 100) {
+      Serial1.print(" ");
+    } 
+    Serial1.print("    ");
+    Serial1.print(stage);
+    if (err != "") {
+      Serial1.print(err);
+    }
+    drawAgain = false;
+  }
 }
 
 ////////// Log to USB Serial
@@ -195,6 +217,10 @@ void logToUSBSerial() {
     Serial.print(now/1000.0);
     Serial.print(" ");
     Serial.print(avTemp);
+    if (err != "") {
+      Serial.print(" ");
+      Serial.print(err);
+    }
     Serial.println();
     lastLogTime = now;
   }
@@ -279,3 +305,4 @@ void loop() {
   logToUSBSerial(); // Logs data to the USB serial conneciton
   handleSSRs();     // Pulses the fan and heat SSRs according to global variables
 }
+

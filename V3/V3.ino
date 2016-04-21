@@ -9,11 +9,21 @@
 //  13 - SSR for Heat
 //  12 - SSR for Fan
 //   2 - OneWire Bus
+//   4 - Up Button
+//   5 - Down Button
+//   6 - Left Button
+//   7 - Right Button
+//   8 - Select Button
 /*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%**%*%*%*%*%*%*%*%*%*%*/
 
 // Define some global constants
 #define ONE_WIRE_BUS 2
 #define TEMPERATURE_PRECISION 9
+#define UP_PIN 4
+#define DOWN_PIN 5
+#define LEFT_PIN 6
+#define RIGHT_PIN 7
+#define SELECT_PIN 8
 const int SSRPin = 13;
 const int FanPin = 12;
 const int LCD_TEMPERATURE_DECIMALS = 2;
@@ -72,6 +82,8 @@ void setup() {
   // set the resolution to 9 bit
   sensors.setResolution(insideThermometer, TEMPERATURE_PRECISION);
   sensors.setResolution(outsideThermometer, TEMPERATURE_PRECISION);
+
+  buttonSetup();
 }
 
 ////////// Collect Data

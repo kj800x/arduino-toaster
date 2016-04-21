@@ -124,12 +124,17 @@ unsigned long stageStartTime = 0;
 void applyProfile() {
   unsigned long now = millis();
   long stageElapsedTime = now - stageStartTime;
+
+  if (err != "") {
+    profileStage = 5;
+  }
+  
   switch (profileStage) {
     case 1:
       if (avTemp < 100) { // While temp is less than 100 C
         heatPowered = true;
         heatDutyOn = 2000;
-        heatDutyOff = 5; // Duty cycle of [2000 ms on | 5 ms off]
+        heatDutyOff = 505; // Duty cycle of [2000 ms on | 505 ms off]
         fanPowered = false;
         stage = "PRHT";
       } else {
@@ -141,7 +146,7 @@ void applyProfile() {
       if (avTemp < 150) { // While temp is less than 150 C 
         heatPowered = true;
         heatDutyOn = 2000;
-        heatDutyOff = 10; // Duty cycle of [2000 ms on | 10 ms off]
+        heatDutyOff = 510; // Duty cycle of [2000 ms on | 510 ms off]
         fanPowered = false;
         stage = "SOAK";
       } else {
@@ -165,7 +170,7 @@ void applyProfile() {
       if (avTemp < 235) { // While temp is less than 235 C
         heatPowered = true;
         heatDutyOn = 2000;
-        heatDutyOff = 100; // Duty cycle of [2000 ms on | 100 ms off]
+        heatDutyOff = 600; // Duty cycle of [2000 ms on | 600 ms off]
         fanPowered = true;
         fanDutyOn = 100;
         fanDutyOff = 0; // Duty cycle of [100 ms on | 0 ms off] (never turns off)
@@ -254,7 +259,7 @@ void handleSSRs() {
       // Fan is on, maybe needs to turn off?
       if (fanPhaseStartTime + fanDutyOn < millis()){
         // Time to turn off
-        digitalWrite(FanPin, LOW); // Remove this line to stop miniscule offs at 100% cycle
+        //digitalWrite(FanPin, LOW); // Remove this line to stop miniscule offs at 100% cycle
         fanPhaseStartTime = millis();
         fanInOnPhase = false;
       } else {
@@ -265,7 +270,7 @@ void handleSSRs() {
       // Fan is off, maybe needs to turn on?
       if (fanPhaseStartTime + fanDutyOff < millis()){
         // Time to turn on
-        digitalWrite(FanPin, HIGH); // Remove this line to stop miniscule ons at 0% cycle
+        //digitalWrite(FanPin, HIGH); // Remove this line to stop miniscule ons at 0% cycle
         fanPhaseStartTime = millis();
         fanInOnPhase = true;
       } else {
@@ -282,7 +287,7 @@ void handleSSRs() {
       // Heat is on, maybe needs to turn off?
       if (heatPhaseStartTime + heatDutyOn < millis()){
         // Time to turn off
-        digitalWrite(SSRPin, LOW); // Remove this line to stop miniscule offs at 100% cycle
+        //digitalWrite(SSRPin, LOW); // Remove this line to stop miniscule offs at 100% cycle
         heatPhaseStartTime = millis();
         heatInOnPhase = false;
       } else {
@@ -293,7 +298,7 @@ void handleSSRs() {
       // Heat is off, maybe needs to turn on?
       if (heatPhaseStartTime + heatDutyOff < millis()){
         // Time to turn on
-        digitalWrite(SSRPin, HIGH); // Remove this line to stop miniscule ons at 0% cycle
+        //digitalWrite(SSRPin, HIGH); // Remove this line to stop miniscule ons at 0% cycle
         heatPhaseStartTime = millis();
         heatInOnPhase = true;
       } else {

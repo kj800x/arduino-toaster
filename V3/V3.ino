@@ -27,8 +27,12 @@
 const int SSRPin = 13;
 const int FanPin = 12;
 const int LCD_TEMPERATURE_DECIMALS = 2;
-const int logInterval = 2500; // In ms, set to 0 for lots of logs
-const int tempInterval = 2500;
+const int logInterval = 1000; // In ms, set to 0 for lots of logs
+const int tempInterval = 1000;
+
+enum MainState { program, run } ;
+
+MainState mainState = run;
 
 // These globals can be modified in the code
 // They affect the duty cycles of the fan and the heat SSRs
@@ -78,6 +82,9 @@ void setup() {
   // Start up the OneWire library
   sensors.begin();
 
+  // Don't wait when we request temperatures
+  sensors.setWaitForConversion(false);
+
   //Set up addresses for the two thermometers
   sensors.getAddress(insideThermometer, 0);
   sensors.getAddress(outsideThermometer, 1);
@@ -99,14 +106,15 @@ void collectData() {
   unsigned long now = millis();
   if (lastTempTime + tempInterval < now) {
     sensors.requestTemperatures();
+    lastTempTime = now;
+  }
+  if (sensors.isConversionAvailable(insideThermometer) && sensors.isConversionAvailable(outsideThermometer)){
     avTemp = (sensors.getTempC(insideThermometer) + sensors.getTempC(outsideThermometer))/2;
     if ((sensors.getTempC(insideThermometer) - sensors.getTempC(outsideThermometer) > 10) || (sensors.getTempC(insideThermometer) - sensors.getTempC(outsideThermometer) < -10)) {
       err = "ERROR";
     } else {
       err = "";
     }
-    
-    lastTempTime = now;
     drawAgain = true;
   }
 }
@@ -311,15 +319,23 @@ void handleSSRs() {
   }
 }
 
+
+
 ////////// Loop
 
 // The main loop
 void loop() {
   // put your main code here, to run repeatedly:
-  collectData();    // Refreshes temperature readings
-  applyProfile();   // Sets global variables for handleSSRs;
-  displayToLCD();   // Puts the current temperature on the LCD
-  logToUSBSerial(); // Logs data to the USB serial conneciton
-  handleSSRs();     // Pulses the fan and heat SSRs according to global variables
+  if (mainState == program) {
+    buttonRefresh();
+    
+    clearPresses();
+  } else {
+    collectData();    // Refreshes temperature readings
+    applyProfile();   // Sets global variables for handleSSRs;
+    displayToLCD();   // Puts the current temperature on the LCD
+    logToUSBSerial(); // Logs data to the USB serial conneciton
+    handleSSRs();     // Pulses the fan and heat SSRs according to global variables
+  }
 }
 

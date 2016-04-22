@@ -29,6 +29,7 @@ const int FanPin = 12;
 const int LCD_TEMPERATURE_DECIMALS = 2;
 const int logInterval = 1000; // In ms, set to 0 for lots of logs
 const int tempInterval = 1000;
+const int maxAllowedTempDiff = 30;
 
 enum MainState { program, run } ;
 
@@ -47,7 +48,9 @@ int heatDutyOff = 0; // How many milliseconds to keep the heat off in the duty c
 boolean drawAgain = false;
 
 // This global can be used throuought the code as the most recent temperature reading 
-double avTemp; // Stored in C
+double avTemp = 0; // Stored in C
+double tempI  = 0; // Stored in C
+double tempO  = 0; // Stored in C
 
 // This global stores the current stage of the curve
 String stage;
@@ -109,8 +112,10 @@ void collectData() {
     lastTempTime = now;
   }
   if (sensors.isConversionAvailable(insideThermometer) && sensors.isConversionAvailable(outsideThermometer)){
-    avTemp = (sensors.getTempC(insideThermometer) + sensors.getTempC(outsideThermometer))/2;
-    if ((sensors.getTempC(insideThermometer) - sensors.getTempC(outsideThermometer) > 10) || (sensors.getTempC(insideThermometer) - sensors.getTempC(outsideThermometer) < -10)) {
+    tempI = sensors.getTempC(insideThermometer);
+    tempO = sensors.getTempC(outsideThermometer);
+    avTemp = (tempI + tempO)/2;
+    if ((tempI - tempO > maxAllowedTempDiff) || (tempI - tempO < -maxAllowedTempDiff)) {
       err = "ERROR";
     } else {
       err = "";
@@ -134,7 +139,7 @@ void applyProfile() {
   long stageElapsedTime = now - stageStartTime;
 
   if (err != "") {
-    profileStage = 5;
+    profileStage = 4;
   }
   
   switch (profileStage) {
@@ -163,7 +168,7 @@ void applyProfile() {
       }
       break; // End profileStage 2
     case 3:
-      if (avTemp < 220) { // While temp is less than 220 C
+      if (avTemp < 230) { // While temp is less than 220 C
         heatPowered = true;
         heatDutyOn = 100;
         heatDutyOff = 0; // Duty cycle of [100 ms on | 0 ms off] (never turns off)
@@ -174,21 +179,7 @@ void applyProfile() {
         stageStartTime = now;
       }
       break; // End profileStage 3
-    case 4:
-      if (avTemp < 235) { // While temp is less than 235 C
-        heatPowered = true;
-        heatDutyOn = 2000;
-        heatDutyOff = 600; // Duty cycle of [2000 ms on | 600 ms off]
-        fanPowered = true;
-        fanDutyOn = 100;
-        fanDutyOff = 0; // Duty cycle of [100 ms on | 0 ms off] (never turns off)
-        stage = "PEAK";
-      } else {
-        profileStage++;
-        stageStartTime = now;
-      }
-      break; // End profileStage 4
-    case 5: // Venting
+    case 4: // Venting
       if (avTemp > 50) { // While temp is more than 50 C
         heatPowered = false;
         fanPowered = true;
@@ -199,7 +190,7 @@ void applyProfile() {
         profileStage++;
         stageStartTime = now;
       }
-      break; // End profileStage 
+      break; // End profileStage 4 
     default: 
       // Invalid profile stage selected, disabling SSR and FAN
       fanPowered = false;
@@ -240,10 +231,16 @@ void logToUSBSerial() {
   unsigned long now = millis();
   if (lastLogTime + logInterval < now){
     Serial.print(now/1000.0);
-    Serial.print(" ");
+    Serial.print(" | ");
     Serial.print(avTemp);
+    Serial.print(" | ");
+    Serial.print(tempI);
+    Serial.print(" ");
+    Serial.print(tempO);
+    Serial.print(" | ");
+    Serial.print(tempI - tempO);
     if (err != "") {
-      Serial.print(" ");
+      Serial.print(" | ");
       Serial.print(err);
     }
     Serial.println();

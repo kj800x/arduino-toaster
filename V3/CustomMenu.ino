@@ -1,8 +1,34 @@
-void CM_init() {
+// Some constants and global variables for the custom menu
+#define CUSTOM_MENU_SIZE 14
+#define eCANCEL_A 0
+#define ePRHT_H_DUTY_ON 1
+#define ePRHT_H_DUTY_OFF 2
+#define eSOAK_H_DUTY_ON 3
+#define eSOAK_H_DUTY_OFF 4
+#define eRAMP_H_DUTY_ON 5
+#define eRAMP_H_DUTY_OFF 6
+#define eCOOL_F_DUTY_ON 7
+#define eCOOL_F_DUTY_OFF 8
+#define eSOAK_START_TEMP 9
+#define eRAMP_START_TEMP 10
+#define eCOOL_START_TEMP 11
+#define eRUN 12
+#define eCANCEL_B 13
+
+// A variable to store the current selected index of the custom
+int customMenuState = ePRHT_H_DUTY_ON;
+
+// Call this before the custom menu is brought up
+void customMenuInit() {
+  Serial.println("Loading Custom Profile");
+  mainState = customMenu;
   drawAgain = true;
   customMenuState = ePRHT_H_DUTY_ON;
+  runType = "Custom";
+  profileStage = PRHT;
 }
 
+// React to buttons for the Custom Menu
 void CM_reactToButtons() {
   if (wasDownPressed()) {
     if (customMenuState + 1 < CUSTOM_MENU_SIZE) {
@@ -78,7 +104,8 @@ void CM_reactToButtons() {
     drawAgain = true;
   }
 }
- 
+
+// Draw the menu
 void CM_displayMenu() {
   if (drawAgain) {
     drawAgain = false;
@@ -112,9 +139,9 @@ void CM_displayMenu() {
       Serial1.print("[ RUN ]");
       return;
     }
-  
+
     Serial1.write(13);
-  
+
     if (customMenuState == ePRHT_H_DUTY_ON) {
       Serial1.print(String(PRHT_H_DUTY_ON));
     } else if (customMenuState == ePRHT_H_DUTY_OFF) {
@@ -138,69 +165,5 @@ void CM_displayMenu() {
     } else if (customMenuState == eCOOL_START_TEMP) {
       Serial1.print(String(COOL_START_TEMP));
     }
-  }
-}
-
-
-// ---------------------CUSTOM TEMPLATE MENU-------------------
-
-char* CTMMenuOptions[]={"[ BACK ]", "Lead", "Lead-Free"};
-const int CTM_MENU_SIZE = 3;
-int CTMMenuLocation = 0;
-
-void CTMinit() {
-  CTMMenuLocation = 0;
-  drawAgain = true;
-}
-
-void CTMreactToButtons() {
-  if (wasDownPressed()) {
-    if (CTMMenuLocation + 1 < CTM_MENU_SIZE) {
-      CTMMenuLocation++;
-    }
-    drawAgain = true;
-  }
-  if (wasUpPressed()) {
-    if (CTMMenuLocation > 0) {
-      CTMMenuLocation--;
-    }
-    drawAgain = true;
-  }
-  if (wasSelectPressed()) {
-    if (CTMMenuLocation == 0) {
-      // Go back to main menu
-      mainMenuInit();
-    } else if (CTMMenuLocation == 1) {
-      // Load Lead and go to customize mode
-      loadLeadProfile();
-      loadCustomProfile();
-    } else if (CTMMenuLocation == 2) {
-      // Load Lead Free and go to customize mode
-      loadLeadFreeProfile();
-      loadCustomProfile();
-    }
-    drawAgain = true;
-  }
-}
-
-boolean isValidCTMMenuNumber(int i) {
-  return (i >= 0 && i < CTM_MENU_SIZE);
-}
- 
-void CTMdisplayMenu() {
-  if (drawAgain) {
-    Serial1.write(12);
-    Serial1.write(">");
-    if (isValidCTMMenuNumber(CTMMenuLocation)) {
-      Serial1.print(CTMMenuOptions[CTMMenuLocation]);
-    }
-    Serial1.write(13);
-    Serial1.write(8);
-    Serial1.write("<");
-    if (isValidCTMMenuNumber(CTMMenuLocation + 1)) {
-      Serial1.print(" ");
-      Serial1.print(CTMMenuOptions[CTMMenuLocation + 1]);
-    }
-    drawAgain = false;
   }
 }

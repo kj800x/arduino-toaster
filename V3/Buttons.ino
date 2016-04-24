@@ -1,10 +1,9 @@
-//BUTTON PIN CONSTANTS
-
 //SETTING FOR TUNING THE BOUNCE SETTING
+// In ms
 #define FIRST_PRESS_DEFAULT 50
 #define REP_PRESS_DEFAULT 400
 
-//Button code below
+// Buttom variables
 int up_laststate = 0;
 int down_laststate = 0;
 int left_laststate = 0;
@@ -29,6 +28,7 @@ bool left_hasRegisteredPress = false;
 bool right_hasRegisteredPress = false;
 bool select_hasRegisteredPress = false;
 
+// Call this to set up the buttons
 void buttonSetup() {
   //Set the pins for input
   pinMode(UP_PIN,    INPUT);
@@ -38,6 +38,8 @@ void buttonSetup() {
   pinMode(SELECT_PIN, INPUT);
 }
 
+// Call this often (as often as possible), to ensure you always have the latest
+// button information
 void buttonRefresh() {
   int val;
 
@@ -64,7 +66,7 @@ void buttonRefresh() {
         }
       }
     }
-  } else {      
+  } else {
     up_laststate = val;
     up_hasRegisteredPress = false;
     up_lastpresstime = millis();
@@ -93,7 +95,7 @@ void buttonRefresh() {
         }
       }
     }
-  } else {      
+  } else {
     down_laststate = val;
     down_hasRegisteredPress = false;
     down_lastpresstime = millis();
@@ -122,7 +124,7 @@ void buttonRefresh() {
         }
       }
     }
-  } else {      
+  } else {
     left_laststate = val;
     left_hasRegisteredPress = false;
     left_lastpresstime = millis();
@@ -151,7 +153,7 @@ void buttonRefresh() {
         }
       }
     }
-  } else {      
+  } else {
     right_laststate = val;
     right_hasRegisteredPress = false;
     right_lastpresstime = millis();
@@ -180,33 +182,39 @@ void buttonRefresh() {
         }
       }
     }
-  } else {      
+  } else {
     select_laststate = val;
     select_hasRegisteredPress = false;
     select_lastpresstime = millis();
   }
 }
 
+// Has the up key been pressed since it was last cleared?
 bool wasUpPressed() {
   return unreadUpPress;
 }
 
+// Has the down key been pressed since it was last cleared?
 bool wasDownPressed() {
   return unreadDownPress;
 }
 
+// Has the left key been pressed since it was last cleared?
 bool wasLeftPressed() {
   return unreadLeftPress;
 }
 
+// Has the right key been pressed since it was last cleared?
 bool wasRightPressed() {
   return unreadRightPress;
 }
 
+// Has the select key been pressed since it was last cleared?
 bool wasSelectPressed() {
   return unreadSelectPress;
 }
 
+// Clear all presses
 void clearPresses() {
   unreadUpPress = false;
   unreadDownPress = false;

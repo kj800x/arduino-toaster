@@ -26,40 +26,25 @@
 #define SELECT_PIN 8
 const int SSRPin = 13;
 const int FanPin = 12;
-const int LCD_TEMPERATURE_DECIMALS = 2;
+const int LCD_TEMPERATURE_DECIMALS = 2; // How many decimals use when displaying to the LCD
 const int logInterval = 1000; // In ms, set to 0 for lots of logs
-const int tempInterval = 1000;
-const int maxAllowedTempDiff = 30;
+const int tempInterval = 1000; // In ms, time before temperature readings
+const int MAX_ALLOWED_TEMP_DIFF = 30; // The temperature difference that is allowed before an error is triggered
+const int MENU_FAN_TEMPERATURE = 50; // The temperature that the fan will continue to run and cool until during menus
 
+// Some easy way to refer to the different stages of the run
 #define PRHT 1
 #define SOAK 2
 #define RAMP 3
 #define COOL 4
 
-String runType; // One of "Lead" "Lead-Free" "Custom"
-
+// Data storing the current overall state of the program
 enum MainState { menu, customTemplateMenu, customMenu, run } ;
 MainState mainState = menu;
 MainState lastState = menu;
 
-// Some constants and global variables for the custom menu
-#define CUSTOM_MENU_SIZE 14
-#define eCANCEL_A 0
-#define ePRHT_H_DUTY_ON 1
-#define ePRHT_H_DUTY_OFF 2
-#define eSOAK_H_DUTY_ON 3
-#define eSOAK_H_DUTY_OFF 4
-#define eRAMP_H_DUTY_ON 5
-#define eRAMP_H_DUTY_OFF 6
-#define eCOOL_F_DUTY_ON 7
-#define eCOOL_F_DUTY_OFF 8
-#define eSOAK_START_TEMP 9
-#define eRAMP_START_TEMP 10
-#define eCOOL_START_TEMP 11
-#define eRUN 12
-#define eCANCEL_B 13
-
-int customMenuState = ePRHT_H_DUTY_ON;
+// A string storing the type of run we are currently doing
+String runType; // One of "Lead" "Lead-Free" "Custom"
 
 // These globals can be modified in the code
 // They affect the duty cycles of the fan and the heat SSRs
@@ -71,9 +56,10 @@ boolean heatPowered = false;
 int heatDutyOn = 0; // How many milliseconds to keep the heat on in the duty cycle
 int heatDutyOff = 0; // How many milliseconds to keep the heat off in the duty cycle
 
+// Do we have new information? Should we redraw the LCD?
 boolean drawAgain = false;
 
-// This global can be used throuought the code as the most recent temperature reading 
+// This global can be used throuought the code as the most recent temperature reading
 double avTemp = 0; // Stored in C
 double tempI  = 0; // Stored in C
 double tempO  = 0; // Stored in C
@@ -85,7 +71,7 @@ unsigned int profileStage = PRHT;
 // Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
 OneWire oneWire(ONE_WIRE_BUS);
 
-// Pass our oneWire reference to Dallas Temperature. 
+// Pass our oneWire reference to Dallas Temperature.
 DallasTemperature sensors(&oneWire);
 
 // Arrays to hold device addresses
@@ -119,8 +105,10 @@ void setup() {
 
   buttonSetup();
 
+  // Initialize the menus, the last one to be initialized will be the one we start at
+  customTemplateMenuInit();
+  customMenuInit();
   mainMenuInit();
-  customMenuState = ePRHT_H_DUTY_ON;
 
   // Intialize the serial connnection to the LCD
   // Do this last because the LCD needs to power on
@@ -133,7 +121,7 @@ void setup() {
 
 ////////// Collect Data
 long lastTempTime = -tempInterval;
-String err;
+boolean err;
 
 // A function to collect thermometer readings and update the global variables
 // Set globals: avTemp
@@ -148,10 +136,10 @@ void collectData() {
     tempI = sensors.getTempC(insideThermometer);
     tempO = sensors.getTempC(outsideThermometer);
     avTemp = (tempI + tempO)/2;
-    if ((tempI - tempO > maxAllowedTempDiff) || (tempI - tempO < -maxAllowedTempDiff)) {
-      err = "ERROR";
+    if ((tempI - tempO > MAX_ALLOWED_TEMP_DIFF) || (tempI - tempO < -MAX_ALLOWED_TEMP_DIFF)) {
+      err = true;
     } else {
-      err = "";
+      err = false;
     }
     if (lastAvg != avTemp){
       drawAgain = true;
@@ -161,28 +149,20 @@ void collectData() {
 
 ////////// Load Profile
 
-int PRHT_H_DUTY_ON;
-int PRHT_H_DUTY_OFF;
-int SOAK_H_DUTY_ON;
-int SOAK_H_DUTY_OFF;
-int RAMP_H_DUTY_ON;
-int RAMP_H_DUTY_OFF;
-int COOL_F_DUTY_ON;
-int COOL_F_DUTY_OFF;
+// Variables to store the profile: (1000ms = 1s)
+int PRHT_H_DUTY_ON; // In ms, how long is the heater on during a PRHT duty cycle
+int PRHT_H_DUTY_OFF; // In ms, how long is the heater off during a PRHT duty cycle
+int SOAK_H_DUTY_ON; // In ms, how long is the heater on during a SOAK duty cycle
+int SOAK_H_DUTY_OFF; // In ms, how long is the heater off during a SOAK duty cycle
+int RAMP_H_DUTY_ON; // In ms, how long is the heater on during a RAMP duty cycle
+int RAMP_H_DUTY_OFF; // In ms, how long is the heater off during a RAMP duty cycle
+int COOL_F_DUTY_ON; // In ms, how long is the fan on during a COOL duty cycle
+int COOL_F_DUTY_OFF; // In ms, how long is the fan off during a COOL duty cycle
+int SOAK_START_TEMP; // In C, the temperature where PRHT turns into SOAK
+int RAMP_START_TEMP; // In C, the temperature where SOAK turns into RAMP
+int COOL_START_TEMP; // In C, the temperature where RAMP turns into COOL
 
-int SOAK_START_TEMP;
-int RAMP_START_TEMP;
-int COOL_START_TEMP;
-
-void loadCustomProfile() {
-  Serial.println("Loading Custom Profile");
-  runType = "Custom";
-  mainState = customMenu;
-  customMenuState = ePRHT_H_DUTY_ON;
-  profileStage = PRHT;
-  CM_init();
-}
-
+// Load the Lead profile
 void loadLeadProfile() {
   Serial.println("Loading Lead Profile");
   PRHT_H_DUTY_ON = 2000;
@@ -203,6 +183,7 @@ void loadLeadProfile() {
   profileStage = PRHT;
 }
 
+// Load the Lead Free profile
 void loadLeadFreeProfile() {
   Serial.println("Loading Lead Free Profile");
   PRHT_H_DUTY_ON = 2000;
@@ -217,7 +198,7 @@ void loadLeadFreeProfile() {
   SOAK_START_TEMP = 100;
   RAMP_START_TEMP = 150;
   COOL_START_TEMP = 230;
-  
+
   runType = "Lead Free";
   mainState = run;
   profileStage = PRHT;
@@ -236,16 +217,16 @@ void applyProfile() {
   unsigned long now = millis();
   long stageElapsedTime = now - stageStartTime;
 
-  if (err != "") {
+  if (err) { // If we've detected an error, throw us into cool immediately
     profileStage = COOL;
   }
-  
+
   switch (profileStage) {
     case PRHT:
-      if (avTemp < SOAK_START_TEMP) { // While temp is less than 100 C
+      if (avTemp < SOAK_START_TEMP) {
         heatPowered = true;
         heatDutyOn = PRHT_H_DUTY_ON;
-        heatDutyOff = PRHT_H_DUTY_OFF; // Duty cycle of [2000 ms on | 505 ms off]
+        heatDutyOff = PRHT_H_DUTY_OFF;
         fanPowered = false;
         stage = "PRHT";
       } else {
@@ -254,7 +235,7 @@ void applyProfile() {
       }
       break; // End profileStage 1
     case SOAK:
-      if (avTemp < RAMP_START_TEMP) { // While temp is less than 150 C 
+      if (avTemp < RAMP_START_TEMP) { // While temp is less than 150 C
         heatPowered = true;
         heatDutyOn = SOAK_H_DUTY_ON;
         heatDutyOff = SOAK_H_DUTY_OFF; // Duty cycle of [2000 ms on | 510 ms off]
@@ -288,9 +269,9 @@ void applyProfile() {
         profileStage++;
         stageStartTime = now;
       }
-      break; // End profileStage 4 
-    default: 
-      // Invalid profile stage selected, disabling SSR and FAN
+      break; // End profileStage 4
+    default:
+      // Profile stage fell off the end of the sequence, go back to main menu
       fanPowered = false;
       heatPowered = false;
       mainMenuInit();
@@ -300,8 +281,8 @@ void applyProfile() {
 
 ////////// Display to LCD
 
-// Display the current temperature in Fahrenheit to the LCD
-// Used globals: avgTemp, stage
+// Display run information (temp, stage, run type) to the LCD
+// Used globals: avgTemp, stage, runType
 void displayToLCD() {
   if (drawAgain) {
     Serial1.write(12);
@@ -309,11 +290,11 @@ void displayToLCD() {
     Serial1.print(" C");
     if (avTemp < 100) {
       Serial1.print(" ");
-    } 
+    }
     Serial1.print("    ");
     Serial1.print(stage);
-    if (err != "") {
-      Serial1.print(err);
+    if (err) {
+      Serial1.print("ERROR");
       Serial1.print(" ");
     }
     Serial1.print(runType);
@@ -340,9 +321,9 @@ void logToUSBSerial() {
     Serial.print(tempO);
     Serial.print(" | ");
     Serial.print(tempI - tempO);
-    if (err != "") {
+    if (err) {
       Serial.print(" | ");
-      Serial.print(err);
+      Serial.print("ERROR");
     }
     Serial.println();
     lastLogTime = now;
@@ -415,11 +396,11 @@ void handleSSRs() {
   }
 }
 
-
+// Watch the temperature during the menus. If it's over a certain number, run the fans.
 void watchTempDuringMenu() {
   digitalWrite(SSRPin, LOW); // Heater is off
   collectData();
-  if (avTemp > 50) { // We're back in menu mode, but we're still too hot, run the fans
+  if (avTemp > MENU_FAN_TEMPERATURE) { // We're back in menu mode, but we're still too hot, run the fans
     digitalWrite(FanPin, HIGH);
   } else {
     digitalWrite(FanPin, LOW);
@@ -454,10 +435,18 @@ void loop() {
     logToUSBSerial(); // Logs data to the USB serial conneciton
     handleSSRs();     // Pulses the fan and heat SSRs according to global variables
   }
+
+  // A note for this next bit of code
+  // This is necessary because the following can happen:
+  // 1) a mainState change happens (drawAgain gets set to true)
+  // 2) a draw to lcd function gets run (drawAgain gets set to false)
+  // 3) the mainState has changed and we're in a different part of the code,
+  //    but the lcd still hasn't gotten drawn and it still looks like we're in
+  //    the old state
   if (lastState != mainState) {
     drawAgain = true;
     lastState = mainState;
   }
+
   clearPresses();
 }
-

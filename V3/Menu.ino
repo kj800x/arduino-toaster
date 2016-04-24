@@ -2,26 +2,37 @@ char* mainMenuOptions[]={"Lead", "Lead-Free", "Custom"};
 const int MAIN_MENU_SIZE = 3;
 int mainMenuLocation = 0;
 
+void mainMenuInit() {
+  mainState = menu;
+  drawAgain = true;
+}
+
 void reactToButtons() {
   if (wasDownPressed()) {
-    mainMenuLocation--;
+    if (mainMenuLocation + 1 < MAIN_MENU_SIZE) {
+      mainMenuLocation++;
+    }
+    drawAgain = true;
   }
   if (wasUpPressed()) {
-    mainMenuLocation++;
+    if (mainMenuLocation > 0) {
+      mainMenuLocation--;
+    }
+    drawAgain = true;
   }
   if (wasSelectPressed()) {
     if (mainMenuLocation == 0) {
       //Lead selected
       loadLeadProfile();
-      mainState = run;
     } else if (mainMenuLocation == 1) {
       //Lead-Free selected
       loadLeadFreeProfile();
-      mainState = run;
     } else if (mainMenuLocation == 2) {
-      //Custom selected
-      //DO OTHER STUFF
+      // Go to the custom template menu
+      mainState = customTemplateMenu;
+      CTMinit();
     }
+    drawAgain = true;
   }
 }
 
@@ -30,13 +41,26 @@ boolean isValidMenuNumber(int i) {
 }
  
 void displayMenu() {
-  int i;
-  Serial1.write(12);
-  for (i = 0; i < 2; i++) {
-    if (isValidMenuNumber(i + mainMenuLocation)) {
-      Serial1.println(mainMenuOptions[i + mainMenuLocation]);
-    } else {
-      Serial1.println("");  
+  if (drawAgain) {
+    Serial1.write(12);
+    Serial1.write(">");
+    if (isValidMenuNumber(mainMenuLocation)) {
+      Serial1.print(mainMenuOptions[mainMenuLocation]);
     }
+    Serial1.write(13);
+    Serial1.write(8);
+    Serial1.write("<");
+    if (isValidMenuNumber(mainMenuLocation + 1)) {
+      Serial1.print(" ");
+      Serial1.print(mainMenuOptions[mainMenuLocation + 1]);
+    }
+    Serial1.write(13);
+    Serial1.write(8);
+    Serial1.write(8);
+    Serial1.write(8);
+    Serial1.write(8);
+    Serial1.write(8);
+    Serial1.print(String(avTemp, LCD_TEMPERATURE_DECIMALS));
+    drawAgain = false;
   }
 }

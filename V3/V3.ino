@@ -31,9 +31,9 @@ const int logInterval = 1000; // In ms, set to 0 for lots of logs
 const int tempInterval = 1000;
 const int maxAllowedTempDiff = 30;
 
-enum MainState { program, run } ;
+enum MainState { menu, run } ;
 
-MainState mainState = run;
+MainState mainState = menu;
 
 // These globals can be modified in the code
 // They affect the duty cycles of the fan and the heat SSRs
@@ -124,10 +124,62 @@ void collectData() {
   }
 }
 
+////////// Load Profile
+
+int PRHT_H_DUTY_ON;
+int PRHT_H_DUTY_OFF;
+int SOAK_H_DUTY_ON;
+int SOAK_H_DUTY_OFF;
+int RAMP_H_DUTY_ON;
+int RAMP_H_DUTY_OFF;
+int COOL_F_DUTY_ON;
+int COOL_F_DUTY_OFF;
+
+int SOAK_START_TEMP;
+int RAMP_START_TEMP;
+int COOL_START_TEMP;
+
+void loadLeadProfile() {
+  Serial.println("Loading Lead Profile");
+  PRHT_H_DUTY_ON = 2000;
+  PRHT_H_DUTY_OFF = 505;
+  SOAK_H_DUTY_ON = 2000;
+  SOAK_H_DUTY_OFF = 510;
+  RAMP_H_DUTY_ON = 100;
+  RAMP_H_DUTY_OFF = 0;
+  COOL_F_DUTY_ON = 100;
+  COOL_F_DUTY_OFF = 0;
+
+  SOAK_START_TEMP = 100;
+  RAMP_START_TEMP = 150;
+  COOL_START_TEMP = 230;
+}
+
+void loadLeadFreeProfile() {
+  Serial.println("Loading Lead Free Profile");
+  PRHT_H_DUTY_ON = 2000;
+  PRHT_H_DUTY_OFF = 505;
+  SOAK_H_DUTY_ON = 2000;
+  SOAK_H_DUTY_OFF = 510;
+  RAMP_H_DUTY_ON = 100;
+  RAMP_H_DUTY_OFF = 0;
+  COOL_F_DUTY_ON = 100;
+  COOL_F_DUTY_OFF = 0;
+
+  SOAK_START_TEMP = 100;
+  RAMP_START_TEMP = 150;
+  COOL_START_TEMP = 230;
+}
+
 ////////// Apply Profile
 
+#define PRHT 1
+#define SOAK 2
+#define RAMP 3
+#define COOL 4
+
 // Only touch this in applyProfile
-unsigned int profileStage = 1;
+unsigned int profileStage = PRHT;
 unsigned long stageStartTime = 0;
 
 // Sets the globals related to outputting on the SSRs
@@ -139,15 +191,15 @@ void applyProfile() {
   long stageElapsedTime = now - stageStartTime;
 
   if (err != "") {
-    profileStage = 4;
+    profileStage = COOL;
   }
   
   switch (profileStage) {
-    case 1:
-      if (avTemp < 100) { // While temp is less than 100 C
+    case PRHT:
+      if (avTemp < SOAK_START_TEMP) { // While temp is less than 100 C
         heatPowered = true;
-        heatDutyOn = 2000;
-        heatDutyOff = 505; // Duty cycle of [2000 ms on | 505 ms off]
+        heatDutyOn = PRHT_H_DUTY_ON;
+        heatDutyOff = PRHT_H_DUTY_OFF; // Duty cycle of [2000 ms on | 505 ms off]
         fanPowered = false;
         stage = "PRHT";
       } else {
@@ -155,11 +207,11 @@ void applyProfile() {
         stageStartTime = now;
       }
       break; // End profileStage 1
-    case 2:
-      if (avTemp < 150) { // While temp is less than 150 C 
+    case SOAK:
+      if (avTemp < RAMP_START_TEMP) { // While temp is less than 150 C 
         heatPowered = true;
-        heatDutyOn = 2000;
-        heatDutyOff = 510; // Duty cycle of [2000 ms on | 510 ms off]
+        heatDutyOn = SOAK_H_DUTY_ON;
+        heatDutyOff = SOAK_H_DUTY_OFF; // Duty cycle of [2000 ms on | 510 ms off]
         fanPowered = false;
         stage = "SOAK";
       } else {
@@ -167,11 +219,11 @@ void applyProfile() {
         stageStartTime = now;
       }
       break; // End profileStage 2
-    case 3:
-      if (avTemp < 230) { // While temp is less than 220 C
+    case RAMP:
+      if (avTemp < COOL_START_TEMP) { // While temp is less than 230 C
         heatPowered = true;
-        heatDutyOn = 100;
-        heatDutyOff = 0; // Duty cycle of [100 ms on | 0 ms off] (never turns off)
+        heatDutyOn = RAMP_H_DUTY_ON;
+        heatDutyOff = RAMP_H_DUTY_OFF; // Duty cycle of [100 ms on | 0 ms off] (never turns off)
         fanPowered = false;
         stage = "RAMP";
       } else {
@@ -179,12 +231,12 @@ void applyProfile() {
         stageStartTime = now;
       }
       break; // End profileStage 3
-    case 4: // Venting
+    case COOL: // Venting
       if (avTemp > 50) { // While temp is more than 50 C
         heatPowered = false;
         fanPowered = true;
-        fanDutyOn = 100;
-        fanDutyOff = 0; // Duty cycle of [100 ms on | 0 ms off] (never turns off)
+        fanDutyOn = COOL_F_DUTY_ON;
+        fanDutyOff = COOL_F_DUTY_OFF; // Duty cycle of [100 ms on | 0 ms off] (never turns off)
         stage = "COOL";
       } else {
         profileStage++;
@@ -195,6 +247,7 @@ void applyProfile() {
       // Invalid profile stage selected, disabling SSR and FAN
       fanPowered = false;
       heatPowered = false;
+      mainState = menu; // Fall back to menu mode
     break;
   }
 }
@@ -206,8 +259,8 @@ void applyProfile() {
 void displayToLCD() {
   if (drawAgain) {
     Serial1.write(12);
-    Serial1.print(String(DallasTemperature::toFahrenheit(avTemp), LCD_TEMPERATURE_DECIMALS));
-    Serial1.print(" F");
+    Serial1.print(String(avTemp, LCD_TEMPERATURE_DECIMALS));
+    Serial1.print(" C");
     if (DallasTemperature::toFahrenheit(avTemp) < 100) {
       Serial1.print(" ");
     } 
@@ -292,7 +345,6 @@ void handleSSRs() {
       // Heat is on, maybe needs to turn off?
       if (heatPhaseStartTime + heatDutyOn < millis()){
         // Time to turn off
-        //digitalWrite(SSRPin, LOW); // Remove this line to stop miniscule offs at 100% cycle
         heatPhaseStartTime = millis();
         heatInOnPhase = false;
       } else {
@@ -303,7 +355,6 @@ void handleSSRs() {
       // Heat is off, maybe needs to turn on?
       if (heatPhaseStartTime + heatDutyOff < millis()){
         // Time to turn on
-        //digitalWrite(SSRPin, HIGH); // Remove this line to stop miniscule ons at 0% cycle
         heatPhaseStartTime = millis();
         heatInOnPhase = true;
       } else {
@@ -323,8 +374,11 @@ void handleSSRs() {
 // The main loop
 void loop() {
   // put your main code here, to run repeatedly:
-  if (mainState == program) {
+  if (mainState == menu) {
     buttonRefresh();
+
+    reactToButtons();
+    displayMenu();
     
     clearPresses();
   } else {

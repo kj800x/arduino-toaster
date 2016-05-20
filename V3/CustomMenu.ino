@@ -1,5 +1,5 @@
 // Some constants and global variables for the custom menu
-#define CUSTOM_MENU_SIZE 14
+#define CUSTOM_MENU_SIZE 15
 #define eCANCEL_A 0
 #define ePRHT_H_DUTY_ON 1
 #define ePRHT_H_DUTY_OFF 2
@@ -12,8 +12,9 @@
 #define eSOAK_START_TEMP 9
 #define eRAMP_START_TEMP 10
 #define eCOOL_START_TEMP 11
-#define eRUN 12
-#define eCANCEL_B 13
+#define eOPEN_START_TIME 12
+#define eRUN 13
+#define eCANCEL_B 14
 
 // A variable to store the current selected index of the custom
 int customMenuState = ePRHT_H_DUTY_ON;
@@ -65,6 +66,8 @@ void CM_reactToButtons() {
       RAMP_START_TEMP += 5;
     } else if (customMenuState == eCOOL_START_TEMP) {
       COOL_START_TEMP += 5;
+    } else if (customMenuState == eOPEN_START_TIME) {
+      OPEN_START_TIME += 5;
     }
     drawAgain = true;
   }
@@ -91,6 +94,8 @@ void CM_reactToButtons() {
       RAMP_START_TEMP -= 5;
     } else if (customMenuState == eCOOL_START_TEMP) {
       COOL_START_TEMP -= 5;
+    } else if (customMenuState == eOPEN_START_TIME) {
+      OPEN_START_TIME -= 5;
     }
     drawAgain = true;
   }
@@ -135,6 +140,8 @@ void CM_displayMenu() {
       Serial1.print("RAMP START TEMP");
     } else if (customMenuState == eCOOL_START_TEMP) {
       Serial1.print("COOL START TEMP");
+    } else if (customMenuState == eOPEN_START_TIME) {
+      Serial1.print("OPEN START TIME");
     } else {
       Serial1.print("[ RUN ]");
       return;
@@ -164,6 +171,8 @@ void CM_displayMenu() {
       Serial1.print(String(RAMP_START_TEMP));
     } else if (customMenuState == eCOOL_START_TEMP) {
       Serial1.print(String(COOL_START_TEMP));
+    } else if (customMenuState == eOPEN_START_TIME) {
+      Serial1.print(String(OPEN_START_TIME));
     }
   }
 }

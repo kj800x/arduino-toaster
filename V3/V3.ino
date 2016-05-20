@@ -32,11 +32,15 @@ const int tempInterval = 1000; // In ms, time before temperature readings
 const int MAX_ALLOWED_TEMP_DIFF = 30; // The temperature difference that is allowed before an error is triggered
 const int MENU_FAN_TEMPERATURE = 50; // The temperature that the fan will continue to run and cool until during menus
 
+// Should we display "Open the door" instead of our usual run data
+boolean displayDoorMessage = false;
+
 // Some easy way to refer to the different stages of the run
 #define PRHT 1
 #define SOAK 2
 #define RAMP 3
 #define COOL 4
+#define OPEN 5
 
 // Data storing the current overall state of the program
 enum MainState { menu, customTemplateMenu, customMenu, run } ;
@@ -161,6 +165,7 @@ int COOL_F_DUTY_OFF; // In ms, how long is the fan off during a COOL duty cycle
 int SOAK_START_TEMP; // In C, the temperature where PRHT turns into SOAK
 int RAMP_START_TEMP; // In C, the temperature where SOAK turns into RAMP
 int COOL_START_TEMP; // In C, the temperature where RAMP turns into COOL
+int OPEN_START_TIME; // Number of seconds after which COOL turns into OPEN
 
 // Load the Lead profile
 void loadLeadProfile() {
@@ -173,10 +178,11 @@ void loadLeadProfile() {
   RAMP_H_DUTY_OFF = 0;
   COOL_F_DUTY_ON = 100;
   COOL_F_DUTY_OFF = 0;
-
+  
   SOAK_START_TEMP = 100;
   RAMP_START_TEMP = 150;
   COOL_START_TEMP = 230;
+  OPEN_START_TIME = 120;
 
   runType = "Lead";
   mainState = run;
@@ -198,10 +204,20 @@ void loadLeadFreeProfile() {
   SOAK_START_TEMP = 100;
   RAMP_START_TEMP = 150;
   COOL_START_TEMP = 230;
+  OPEN_START_TIME = 120;
 
   runType = "Lead Free";
   mainState = run;
   profileStage = PRHT;
+}
+
+////////// Beep
+
+// Beeps using the speaker on the LCD
+void beep() {
+  Serial1.write(214); // Set beep time for 2 sec
+  Serial1.write(217); // Set octave to 5
+  Serial1.write(220); // Play A
 }
 
 ////////// Apply Profile
@@ -258,7 +274,12 @@ void applyProfile() {
         stageStartTime = now;
       }
       break; // End profileStage 3
-    case COOL: // Venting
+    case COOL: // Venting (Door closed)
+      if ((now - stageStartTime) / 1000 > OPEN_START_TIME) { // Go to OPEN
+        profileStage++;
+        beep();
+        stageStartTime = now;
+      }
       if (avTemp > 50) { // While temp is more than 50 C
         heatPowered = false;
         fanPowered = true;
@@ -269,7 +290,20 @@ void applyProfile() {
         profileStage++;
         stageStartTime = now;
       }
-      break; // End profileStage 4
+      break; // End profileStage 4  
+    case OPEN: // Venting (Door open)
+      if (avTemp > 50) { // While temp is more than 50 C
+        heatPowered = false;
+        fanPowered = true;
+        fanDutyOn = COOL_F_DUTY_ON;
+        fanDutyOff = COOL_F_DUTY_OFF; // Duty cycle of [100 ms on | 0 ms off] (never turns off)
+        stage = "OPEN";
+        displayDoorMessage = true;
+      } else {
+        profileStage++;
+        stageStartTime = now;
+      }
+      break; // End profileStage 5
     default:
       // Profile stage fell off the end of the sequence, go back to main menu
       fanPowered = false;
@@ -285,19 +319,28 @@ void applyProfile() {
 // Used globals: avgTemp, stage, runType
 void displayToLCD() {
   if (drawAgain) {
+    Serial1.write(17); // Turn backlight on
+    Serial1.write(22); // Turn cursor display off
     Serial1.write(12);
-    Serial1.print(String(avTemp, LCD_TEMPERATURE_DECIMALS));
-    Serial1.print(" C");
-    if (avTemp < 100) {
-      Serial1.print(" ");
+    if (displayDoorMessage) {
+      Serial1.print("OPEN THE DOOR");
+      Serial1.write(13);
+      Serial1.print(String(avTemp, LCD_TEMPERATURE_DECIMALS));
+      Serial1.print(" C");
+    } else {
+      Serial1.print(String(avTemp, LCD_TEMPERATURE_DECIMALS));
+      Serial1.print(" C");
+      if (avTemp < 100) {
+        Serial1.print(" ");
+      }
+      Serial1.print("    ");
+      Serial1.print(stage);
+      if (err) {
+        Serial1.print("ERROR");
+        Serial1.print(" ");
+      }
+      Serial1.print(runType);
     }
-    Serial1.print("    ");
-    Serial1.print(stage);
-    if (err) {
-      Serial1.print("ERROR");
-      Serial1.print(" ");
-    }
-    Serial1.print(runType);
     drawAgain = false;
   }
 }
@@ -405,6 +448,7 @@ void watchTempDuringMenu() {
   } else {
     digitalWrite(FanPin, LOW);
   }
+  displayDoorMessage = false;
 }
 
 ////////// Loop

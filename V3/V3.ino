@@ -28,7 +28,7 @@ const int SSRPin = 13;
 const int FanPin = 12;
 const int LCD_TEMPERATURE_DECIMALS = 2; // How many decimals use when displaying to the LCD
 const int logInterval = 1000; // In ms, set to 0 for lots of logs
-const int tempInterval = 1000; // In ms, time before temperature readings
+const int tempInterval = 1000; // In ms, time between temperature readings (Values too short will adversly affect slope calculations)
 const int MAX_ALLOWED_TEMP_DIFF = 30; // The temperature difference that is allowed before an error is triggered
 const int MENU_FAN_TEMPERATURE = 50; // The temperature that the fan will continue to run and cool until during menus
 
@@ -67,6 +67,11 @@ boolean drawAgain = false;
 double avTemp = 0; // Stored in C
 double tempI  = 0; // Stored in C
 double tempO  = 0; // Stored in C
+
+// This global refers to the previous temperature reading (used to calculate the slope)
+double lastTempReading = 0.0;
+// This global can be used to refer to the most recent temperature slope reading (updates every tempInterval)
+double tempSlope = 0.0;
 
 // This global stores the current stage of the curve
 String stage;
@@ -137,9 +142,11 @@ void collectData() {
     lastTempTime = now;
   }
   if (sensors.isConversionAvailable(insideThermometer) && sensors.isConversionAvailable(outsideThermometer)){
+    lastTempReading = avTemp;
     tempI = sensors.getTempC(insideThermometer);
     tempO = sensors.getTempC(outsideThermometer);
     avTemp = (tempI + tempO)/2;
+    tempSlope = (avTemp - lastTempReading) / (tempInterval / 1000.0);
     if ((tempI - tempO > MAX_ALLOWED_TEMP_DIFF) || (tempI - tempO < -MAX_ALLOWED_TEMP_DIFF)) {
       err = true;
     } else {
@@ -364,6 +371,8 @@ void logToUSBSerial() {
     Serial.print(tempO);
     Serial.print(" | ");
     Serial.print(tempI - tempO);
+    Serial.print(" | ");
+    Serial.print(tempSlope);
     if (err) {
       Serial.print(" | ");
       Serial.print("ERROR");

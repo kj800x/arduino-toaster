@@ -29,8 +29,9 @@ const int FanPin = 12;
 const int LCD_TEMPERATURE_DECIMALS = 2; // How many decimals use when displaying to the LCD
 const int logInterval = 1000; // In ms, set to 0 for lots of logs
 const int tempInterval = 1000; // In ms, time between temperature readings (Values too short will adversly affect slope calculations)
-const int MAX_ALLOWED_TEMP_DIFF = 30; // The temperature difference that is allowed before an error is triggered
-const int MENU_FAN_TEMPERATURE = 50; // The temperature that the fan will continue to run and cool until during menus
+const int MAX_ALLOWED_TEMP_DIFF = 30; // in C, The temperature difference that is allowed before an error is triggered
+const int MENU_FAN_TEMPERATURE = 50; // in C, The temperature that the fan will continue to run and cool until during menus
+const double DOOR_OPEN_TRIGGER_SLOPE = -2.0; // in C, The temperature slope that will trigger the door open flag
 
 // Should we display "Open the door" instead of our usual run data
 boolean displayDoorMessage = false;
@@ -67,6 +68,9 @@ boolean drawAgain = false;
 double avTemp = 0; // Stored in C
 double tempI  = 0; // Stored in C
 double tempO  = 0; // Stored in C
+
+// Have we detected that the door was opened this run?
+boolean doorOpenDetected = false;
 
 // This global refers to the previous temperature reading (used to calculate the slope)
 double lastTempReading = 0.0;
@@ -147,6 +151,9 @@ void collectData() {
     tempO = sensors.getTempC(outsideThermometer);
     avTemp = (tempI + tempO)/2;
     tempSlope = (avTemp - lastTempReading) / (tempInterval / 1000.0);
+    if (tempSlope < DOOR_OPEN_TRIGGER_SLOPE) {
+      doorOpenDetected = true;
+    }
     if ((tempI - tempO > MAX_ALLOWED_TEMP_DIFF) || (tempI - tempO < -MAX_ALLOWED_TEMP_DIFF)) {
       err = true;
     } else {
@@ -197,6 +204,7 @@ void loadLeadProfile() {
 }
 
 // Load the Lead Free profile
+// TODO: Values need to be determined
 void loadLeadFreeProfile() {
   Serial.println("Loading Lead Free Profile");
   PRHT_H_DUTY_ON = 2000;
@@ -240,8 +248,8 @@ void applyProfile() {
   unsigned long now = millis();
   long stageElapsedTime = now - stageStartTime;
 
-  if (err) { // If we've detected an error, throw us into cool immediately
-    profileStage = COOL;
+  if (err) { // If we've detected an error, throw us into open immediately
+    profileStage = OPEN;
   }
 
   switch (profileStage) {
@@ -252,6 +260,7 @@ void applyProfile() {
         heatDutyOff = PRHT_H_DUTY_OFF;
         fanPowered = false;
         stage = "PRHT";
+        doorOpenDetected = false;
       } else {
         profileStage++;
         stageStartTime = now;
@@ -284,8 +293,8 @@ void applyProfile() {
     case COOL: // Venting (Door closed)
       if ((now - stageStartTime) / 1000 > OPEN_START_TIME) { // Go to OPEN
         profileStage++;
-        beep();
         stageStartTime = now;
+        doorOpenDetected = false;
       }
       if (avTemp > 50) { // While temp is more than 50 C
         heatPowered = false;
@@ -300,6 +309,12 @@ void applyProfile() {
       break; // End profileStage 4  
     case OPEN: // Venting (Door open)
       if (avTemp > 50) { // While temp is more than 50 C
+        if (doorOpenDetected) {
+          displayDoorMessage = false;
+        } else {
+          beep();
+          displayDoorMessage = true;
+        }
         heatPowered = false;
         fanPowered = true;
         fanDutyOn = COOL_F_DUTY_ON;

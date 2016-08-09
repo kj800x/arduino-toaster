@@ -1,0 +1,100 @@
+v 20130925 2
+T 2300 1600 6 8 0 1 0 0 1
+device=MAX 31850
+T 2300 1800 6 8 0 1 0 0 1
+description=MAX 31850
+T 1000 1900 6 8 1 1 0 0 1
+refdes=U?
+T 2300 2000 6 8 0 1 0 0 1
+numslots=1
+B 300 0 900 1800 3 0 0 0 -1 -1 0 -1 -1 -1 -1 -1
+T 300 1900 9 6 1 0 0 0 1
+MAX 31850
+P 0 1600 300 1600 1 0 0
+{
+T 0 1600 5 6 0 0 0 0 1
+pintype=pwr
+T 355 1595 5 6 1 1 0 0 1
+pinlabel=GND
+T 205 1645 5 6 1 1 0 6 1
+pinnumber=1
+T 0 1600 5 6 0 0 0 0 1
+pinseq=1
+}
+P 0 1400 300 1400 1 0 0
+{
+T 0 1400 5 6 0 0 0 0 1
+pintype=pwr
+T 355 1395 5 6 1 1 0 0 1
+pinlabel=VIN
+T 205 1445 5 6 1 1 0 6 1
+pinnumber=2
+T 0 1400 5 6 0 0 0 0 1
+pinseq=2
+}
+P 0 1200 300 1200 1 0 0
+{
+T 0 1200 5 6 0 0 0 0 1
+pintype=pwr
+T 355 1195 5 6 1 1 0 0 1
+pinlabel=3V3
+T 205 1245 5 6 1 1 0 6 1
+pinnumber=3
+T 0 1200 5 6 0 0 0 0 1
+pinseq=3
+}
+P 0 1000 300 1000 1 0 0
+{
+T 0 1000 5 6 0 0 0 0 1
+pintype=io
+T 355 995 5 6 1 1 0 0 1
+pinlabel=A0
+T 205 1045 5 6 1 1 0 6 1
+pinnumber=4
+T 0 1000 5 6 0 0 0 0 1
+pinseq=4
+}
+P 0 800 300 800 1 0 0
+{
+T 0 800 5 6 0 0 0 0 1
+pintype=io
+T 355 795 5 6 1 1 0 0 1
+pinlabel=A1
+T 205 845 5 6 1 1 0 6 1
+pinnumber=5
+T 0 800 5 6 0 0 0 0 1
+pinseq=5
+}
+P 0 600 300 600 1 0 0
+{
+T 0 600 5 6 0 0 0 0 1
+pintype=io
+T 355 595 5 6 1 1 0 0 1
+pinlabel=A2
+T 205 645 5 6 1 1 0 6 1
+pinnumber=6
+T 0 600 5 6 0 0 0 0 1
+pinseq=6
+}
+P 0 400 300 400 1 0 0
+{
+T 0 400 5 6 0 0 0 0 1
+pintype=io
+T 355 395 5 6 1 1 0 0 1
+pinlabel=A3
+T 205 445 5 6 1 1 0 6 1
+pinnumber=7
+T 0 400 5 6 0 0 0 0 1
+pinseq=7
+}
+P 0 200 300 200 1 0 0
+{
+T 0 200 5 6 0 0 0 0 1
+pintype=io
+T 355 195 5 6 1 1 0 0 1
+pinlabel=DATA
+T 205 245 5 6 1 1 0 6 1
+pinnumber=8
+T 0 200 5 6 0 0 0 0 1
+pinseq=8
+}

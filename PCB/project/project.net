@@ -8,8 +8,8 @@ unnamed_net7	CONN1-8 U1-23
 unnamed_net6	CONN1-9 U1-22 
 unnamed_net5	CONN1-10 U1-21 
 unnamed_net4	U2-11 U1-20 
-unnamed_net3	CONN1-12 U1-19 
-unnamed_net2	CONN1-13 U1-18 
+unnamed_net3	CONN1-12 U1-18 
 GND	CONN1-11 CONN1-1 U3-1 U4-1 U2-6 U1-14 
 5V	CONN1-2 U3-2 U4-2 U2-12 U1-12 
-unnamed_net1	U2-1 R1-2 U1-2 
+unnamed_net2	U2-1 R1-2 U1-2 
+unnamed_net1	CONN1-13 U1-1 

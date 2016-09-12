@@ -188,12 +188,13 @@ void setup() {
   lcd.home();
   lcd.noAutoscroll();
   lcd.noCursor();
-  lcd.print("Let's Get Toasty!");
+  lcd.print("Let's Get Toasty!"); /*
   lcd.createChar(scrollbarTop,    scrollbarTop_data);
   lcd.createChar(scrollbarS1,     scrollbarS1_data);
   lcd.createChar(scrollbarS2,     scrollbarS2_data);
   lcd.createChar(scrollbarS3,     scrollbarS3_data);
-  lcd.createChar(scrollbarBottom, scrollbarBottom_data);
+  lcd.createChar(scrollbarBottom, scrollbarBottom_data);*/
+
 }
 
 ////////// Collect Data
@@ -202,11 +203,11 @@ boolean err;
 
 // A function to collect thermometer readings and update the global variables
 // Set globals: avTemp
-void collectData() {
+void collectData() {/*
   unsigned long now = millis();
   double lastAvg = avTemp;
   if (lastTempTime + tempInterval < now) {
-    sensors.requestTemperatures();
+  //  sensors.requestTemperatures();
     lastTempTime = now;
   }
   if (sensors.isConversionAvailable(insideThermometer) && sensors.isConversionAvailable(outsideThermometer)){
@@ -226,7 +227,8 @@ void collectData() {
     if (lastAvg != avTemp){
       drawAgain = true;
     }
-  }
+  }*/
+  drawAgain = true;
 }
 
 ////////// Load Profile
@@ -542,6 +544,9 @@ void watchTempDuringMenu() {
 // The main loop
 void loop() {
   // put your main code here, to run repeatedly:
+  lcd.home();
+  lcd.clear();
+  lcd.print(millis());
   buttonRefresh();
   if (mainState == menu) {
     watchTempDuringMenu();

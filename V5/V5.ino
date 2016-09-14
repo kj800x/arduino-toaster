@@ -164,9 +164,6 @@ void setup() {
   // Start up the OneWire library
   sensors.begin();
 
-  // Don't wait when we request temperatures
-  sensors.setWaitForConversion(false);
-
   //Set up addresses for the two thermometers
   sensors.getAddress(insideThermometer, 0);
   sensors.getAddress(outsideThermometer, 1);
@@ -174,6 +171,9 @@ void setup() {
   // set the resolution to 9 bit
   sensors.setResolution(insideThermometer, TEMPERATURE_PRECISION);
   sensors.setResolution(outsideThermometer, TEMPERATURE_PRECISION);
+
+  // Don't wait when we request temperatures
+  sensors.setWaitForConversion(false);
 
   buttonSetup();
 
@@ -203,7 +203,8 @@ boolean err;
 
 // A function to collect thermometer readings and update the global variables
 // Set globals: avTemp
-void collectData() {/*
+//void collectData() {
+  /*
   unsigned long now = millis();
   double lastAvg = avTemp;
   if (lastTempTime + tempInterval < now) {
@@ -228,8 +229,38 @@ void collectData() {/*
       drawAgain = true;
     }
   }*/
-  drawAgain = true;
+//  drawAgain = true;
+//}
+
+
+void collectData() {
+  unsigned long now = millis();
+  double lastAvg = avTemp;
+  if (lastTempTime + tempInterval < now) {
+    sensors.requestTemperatures(); // THIS LINE IS BLOCKING. WHY.
+    lastTempTime = now;
+  }
+  //if (sensors.isConversionAvailable(insideThermometer)/* && sensors.isConversionAvailable(outsideThermometer)*/){
+    lastTempReading = avTemp;
+    //tempI = sensors.getTempC(insideThermometer);
+    //tempO = sensors.getTempC(outsideThermometer);
+    //avTemp = (tempI + tempO)/2;
+    avTemp = tempI;
+    tempSlope = (avTemp - lastTempReading) / (tempInterval / 1000.0);
+    if (tempSlope < DOOR_OPEN_TRIGGER_SLOPE) {
+    //  doorOpenDetected = true;
+    }
+    //if ((tempI - tempO > MAX_ALLOWED_TEMP_DIFF) || (tempI - tempO < -MAX_ALLOWED_TEMP_DIFF)) {
+    //  err = true;
+    //} else {
+    //  err = false;
+    //}
+    if (lastAvg != avTemp){
+    //  drawAgain = true;
+  //  }
+  }
 }
+
 
 ////////// Load Profile
 

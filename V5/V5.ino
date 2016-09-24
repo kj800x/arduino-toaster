@@ -19,15 +19,16 @@
 /*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%**%*%*%*%*%*%*%*%*%*%*/
 
 // Define some global constants
-#define ONE_WIRE_BUS 2
+
+#define ONE_WIRE_BUS 10
 #define TEMPERATURE_PRECISION 11
 #define UP_PIN 4
 #define DOWN_PIN 5
 #define LEFT_PIN 6
 #define RIGHT_PIN 7
 #define SELECT_PIN 8
-const int SSRPin = 13;
-const int FanPin = 12;
+const int SSRPin = 12;
+const int FanPin = 13;
 const int LCD_TEMPERATURE_DECIMALS = 2; // How many decimals use when displaying to the LCD
 const int logInterval = 1000; // In ms, set to 0 for lots of logs
 const int tempInterval = 1000; // In ms, time between temperature readings (Values too short will adversly affect slope calculations)
@@ -203,12 +204,12 @@ boolean err;
 
 // A function to collect thermometer readings and update the global variables
 // Set globals: avTemp
-//void collectData() {
-  /*
+void collectData() {
+  
   unsigned long now = millis();
   double lastAvg = avTemp;
   if (lastTempTime + tempInterval < now) {
-  //  sensors.requestTemperatures();
+    sensors.requestTemperatures();
     lastTempTime = now;
   }
   if (sensors.isConversionAvailable(insideThermometer) && sensors.isConversionAvailable(outsideThermometer)){
@@ -228,39 +229,9 @@ boolean err;
     if (lastAvg != avTemp){
       drawAgain = true;
     }
-  }*/
+  }
 //  drawAgain = true;
-//}
-
-
-void collectData() {
-  unsigned long now = millis();
-  double lastAvg = avTemp;
-  if (lastTempTime + tempInterval < now) {
-    sensors.requestTemperatures(); // THIS LINE IS BLOCKING. WHY.
-    lastTempTime = now;
-  }
-  //if (sensors.isConversionAvailable(insideThermometer)/* && sensors.isConversionAvailable(outsideThermometer)*/){
-    lastTempReading = avTemp;
-    //tempI = sensors.getTempC(insideThermometer);
-    //tempO = sensors.getTempC(outsideThermometer);
-    //avTemp = (tempI + tempO)/2;
-    avTemp = tempI;
-    tempSlope = (avTemp - lastTempReading) / (tempInterval / 1000.0);
-    if (tempSlope < DOOR_OPEN_TRIGGER_SLOPE) {
-    //  doorOpenDetected = true;
-    }
-    //if ((tempI - tempO > MAX_ALLOWED_TEMP_DIFF) || (tempI - tempO < -MAX_ALLOWED_TEMP_DIFF)) {
-    //  err = true;
-    //} else {
-    //  err = false;
-    //}
-    if (lastAvg != avTemp){
-    //  drawAgain = true;
-  //  }
-  }
 }
-
 
 ////////// Load Profile
 
@@ -575,9 +546,6 @@ void watchTempDuringMenu() {
 // The main loop
 void loop() {
   // put your main code here, to run repeatedly:
-  lcd.home();
-  lcd.clear();
-  lcd.print(millis());
   buttonRefresh();
   if (mainState == menu) {
     watchTempDuringMenu();

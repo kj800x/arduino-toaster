@@ -31,11 +31,11 @@ bool select_hasRegisteredPress = false;
 // Call this to set up the buttons
 void buttonSetup() {
   //Set the pins for input
-  pinMode(UP_PIN,    INPUT);
-  pinMode(DOWN_PIN,  INPUT);
-  pinMode(LEFT_PIN,  INPUT);
-  pinMode(RIGHT_PIN, INPUT);
-  pinMode(SELECT_PIN, INPUT);
+  pinMode(UP_PIN,    INPUT_PULLUP);
+  pinMode(DOWN_PIN,  INPUT_PULLUP);
+  pinMode(LEFT_PIN,  INPUT_PULLUP);
+  pinMode(RIGHT_PIN, INPUT_PULLUP);
+  pinMode(SELECT_PIN, INPUT_PULLUP);
 }
 
 // Call this often (as often as possible), to ensure you always have the latest
@@ -48,7 +48,7 @@ void buttonRefresh() {
   if (val == up_laststate) { // The button has been consistent
     if (up_hasRegisteredPress) {
       if (up_lastpresstime + REP_PRESS_DEFAULT < millis()) {
-        if (val == 1) {
+        if (val == 0) {
           //We have pressed the button
           unreadUpPress = true;
           up_lastpresstime = millis();
@@ -57,7 +57,7 @@ void buttonRefresh() {
       }
     } else {
       if (up_lastpresstime + FIRST_PRESS_DEFAULT < millis()) {
-        if (val == 1) {
+        if (val == 0) {
           //We have pressed the button
           unreadUpPress = true;
           up_hasRegisteredPress = true;
@@ -77,7 +77,7 @@ void buttonRefresh() {
   if (val == down_laststate) { // The button has been consistent
     if (down_hasRegisteredPress) {
       if (down_lastpresstime + REP_PRESS_DEFAULT < millis()) {
-        if (val == 1) {
+        if (val == 0) {
           //We have pressed the button
           unreadDownPress = true;
           down_lastpresstime = millis();
@@ -86,7 +86,7 @@ void buttonRefresh() {
       }
     } else {
       if (down_lastpresstime + FIRST_PRESS_DEFAULT < millis()) {
-        if (val == 1) {
+        if (val == 0) {
           //We have pressed the button
           unreadDownPress = true;
           down_hasRegisteredPress = true;
@@ -106,7 +106,7 @@ void buttonRefresh() {
   if (val == left_laststate) { // The button has been consistent
     if (left_hasRegisteredPress) {
       if (left_lastpresstime + REP_PRESS_DEFAULT < millis()) {
-        if (val == 1) {
+        if (val == 0) {
           //We have pressed the button
           unreadLeftPress = true;
           left_lastpresstime = millis();
@@ -115,7 +115,7 @@ void buttonRefresh() {
       }
     } else {
       if (left_lastpresstime + FIRST_PRESS_DEFAULT < millis()) {
-        if (val == 1) {
+        if (val == 0) {
           //We have pressed the button
           unreadLeftPress = true;
           left_hasRegisteredPress = true;
@@ -135,7 +135,7 @@ void buttonRefresh() {
   if (val == right_laststate) { // The button has been consistent
     if (right_hasRegisteredPress) {
       if (right_lastpresstime + REP_PRESS_DEFAULT < millis()) {
-        if (val == 1) {
+        if (val == 0) {
           //We have pressed the button
           unreadRightPress = true;
           right_lastpresstime = millis();
@@ -144,7 +144,7 @@ void buttonRefresh() {
       }
     } else {
       if (right_lastpresstime + FIRST_PRESS_DEFAULT < millis()) {
-        if (val == 1) {
+        if (val == 0) {
           //We have pressed the button
           unreadRightPress = true;
           right_hasRegisteredPress = true;
@@ -164,7 +164,7 @@ void buttonRefresh() {
   if (val == select_laststate) { // The button has been consistent
     if (select_hasRegisteredPress) {
       if (select_lastpresstime + REP_PRESS_DEFAULT < millis()) {
-        if (val == 1) {
+        if (val == 0) {
           //We have pressed the button
           unreadSelectPress = true;
           select_lastpresstime = millis();
@@ -173,7 +173,7 @@ void buttonRefresh() {
       }
     } else {
       if (select_lastpresstime + FIRST_PRESS_DEFAULT < millis()) {
-        if (val == 1) {
+        if (val == 0) {
           //We have pressed the button
           unreadSelectPress = true;
           select_hasRegisteredPress = true;

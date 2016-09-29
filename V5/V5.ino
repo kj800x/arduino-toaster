@@ -189,7 +189,8 @@ void setup() {
   lcd.home();
   lcd.noAutoscroll();
   lcd.noCursor();
-  lcd.print("Let's Get Toasty!"); /*
+  lcd.print("Let's Get Toasty!"); 
+  delay(3000);/*
   lcd.createChar(scrollbarTop,    scrollbarTop_data);
   lcd.createChar(scrollbarS1,     scrollbarS1_data);
   lcd.createChar(scrollbarS2,     scrollbarS2_data);
@@ -253,7 +254,7 @@ int OPEN_START_TIME; // Number of seconds after which COOL turns into OPEN
 void loadLeadProfile() {
   Serial.println("Loading Lead Profile");
   PRHT_H_DUTY_ON = 2000;
-  PRHT_H_DUTY_OFF = 505;
+  PRHT_H_DUTY_OFF = 250;
   SOAK_H_DUTY_ON = 2000;
   SOAK_H_DUTY_OFF = 510;
   RAMP_H_DUTY_ON = 100;
@@ -275,19 +276,18 @@ void loadLeadProfile() {
 // TODO: Values need to be determined
 void loadLeadFreeProfile() {
   Serial.println("Loading Lead Free Profile");
-  PRHT_H_DUTY_ON = 2000;
-  PRHT_H_DUTY_OFF = 505;
+  PRHT_H_DUTY_ON = 3000;
+  PRHT_H_DUTY_OFF = 250;
   SOAK_H_DUTY_ON = 2000;
-  SOAK_H_DUTY_OFF = 510;
+  SOAK_H_DUTY_OFF = 250;
   RAMP_H_DUTY_ON = 100;
-  RAMP_H_DUTY_OFF = 0;
   COOL_F_DUTY_ON = 100;
   COOL_F_DUTY_OFF = 0;
 
-  SOAK_START_TEMP = 100;
-  RAMP_START_TEMP = 150;
-  COOL_START_TEMP = 230;
-  OPEN_START_TIME = 120;
+  SOAK_START_TEMP = 160;
+  RAMP_START_TEMP = 205;
+  COOL_START_TEMP = 260;
+  OPEN_START_TIME = 180;
 
   runType = "Lead Free";
   mainState = run;
@@ -375,7 +375,7 @@ void applyProfile() {
       break; // End profileStage 4  
     case OPEN: // Venting (Door open)
       if (avTemp > 50) { // While temp is more than 50 C
-        if (doorOpenDetected) {
+        if (tempSlope < -2.0) {
           displayDoorMessage = false;
         } else {
           beep();
@@ -408,27 +408,27 @@ void applyProfile() {
 void displayToLCD() {
   if (drawAgain) {
     lcd.clear();
-    lcd.home();
     if (displayDoorMessage) {
+      lcd.setCursor(0,1);
       lcd.print("OPEN THE DOOR");
-      lcd.setCursor(0,1); //Move to second line
-      lcd.print(String(avTemp, LCD_TEMPERATURE_DECIMALS));
-      lcd.print(" C");
-    } else {
-      lcd.print(String(avTemp, LCD_TEMPERATURE_DECIMALS));
-      lcd.print(" C");
-      if (avTemp < 100) {
-        lcd.print(" ");
-      }
-      lcd.print("    ");
-      lcd.print(stage);
-      lcd.setCursor(0,1); //Move to second line
-      if (err) {
-        lcd.print("ERROR");
-        lcd.print(" ");
-      }
-      lcd.print(runType);
     }
+    lcd.home();
+    lcd.print(String(avTemp, LCD_TEMPERATURE_DECIMALS));
+    lcd.print(" C");
+    if (avTemp < 100) {
+      lcd.print(" ");
+    }
+    lcd.setCursor(16,0);
+    lcd.print(stage);
+    if (err) {
+      lcd.setCursor(0,1); //Move to second line
+      lcd.print("!!ERROR!!");
+    }
+    lcd.setCursor(0,2);
+    lcd.print("dT/dt = ");
+    lcd.print(String(tempSlope, 2));
+    lcd.setCursor(0,3); //Move to second line
+    lcd.print(runType);
     drawAgain = false;
   }
 }
@@ -453,7 +453,7 @@ void logToUSBSerial() {
     Serial.print(" | ");
     Serial.print(tempI - tempO);
     Serial.print(" | ");
-    Serial.print(tempSlope);
+    Serial.print(String(tempSlope, 2));
     if (err) {
       Serial.print(" | ");
       Serial.print("ERROR");

@@ -57,21 +57,21 @@ void displayMenu() {
     lcd.clear();
     lcd.home();
     for (int i = 0; i < 4; i++) {
-      lcd.setCursor(i,1); //Move to second line
+      lcd.setCursor(0,i); // Move to correct line
       if (mainMenuLocation - mainMenuScroll == i) {
         lcd.print(">");
       } else {
         lcd.print(" ");
       }
-      if (isValidMenuNumber(mainMenuLocation - mainMenuScroll)) {
-        lcd.print(mainMenuOptions[mainMenuLocation - mainMenuScroll]);
+      if (isValidMenuNumber(i - mainMenuScroll)) {
+        lcd.print(mainMenuOptions[i - mainMenuScroll]);
       }
     }
     // Write the current temperature in the last 5 characters
     if (avTemp >= 100) {
-      lcd.setCursor(12,3); //Move to last 8 characters
+      lcd.setCursor(13,3); //Move to last 8 characters
     } else {
-      lcd.setCursor(13,3); //Move to last 7 characters
+      lcd.setCursor(14,3); //Move to last 7 characters
     }
     lcd.print(String(avTemp, LCD_TEMPERATURE_DECIMALS - 1));
     lcd.print(" C");

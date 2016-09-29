@@ -1,11 +1,14 @@
 // The menu options
-char* mainMenuOptions[]={"Lead", "Lead-Free", "Custom"};
+char* mainMenuOptions[]={"Lead", "Lead-Free"/*, "Custom"*/};
 
 // Make sure this matches the variable above
-const int MAIN_MENU_SIZE = 3;
+const int MAIN_MENU_SIZE = 2; // Should be 3 if we re-enable the custom menu.
 
 // The current menu option
 int mainMenuLocation = 0;
+
+// The current menu scroll state
+int mainMenuScroll = 0;
 
 // Call this when you want to bring the main menu up
 void mainMenuInit() {
@@ -53,23 +56,25 @@ void displayMenu() {
     // Write the first row
     lcd.clear();
     lcd.home();
-    lcd.print(">");
-    if (isValidMenuNumber(mainMenuLocation)) {
-      lcd.print(mainMenuOptions[mainMenuLocation]);
-    }
-    lcd.setCursor(0,1); //Move to second line
-    // Write the second row
-    if (isValidMenuNumber(mainMenuLocation + 1)) {
-      lcd.print(" ");
-      lcd.print(mainMenuOptions[mainMenuLocation + 1]);
+    for (int i = 0; i < 4; i++) {
+      lcd.setCursor(i,1); //Move to second line
+      if (mainMenuLocation - mainMenuScroll == i) {
+        lcd.print(">");
+      } else {
+        lcd.print(" ");
+      }
+      if (isValidMenuNumber(mainMenuLocation - mainMenuScroll)) {
+        lcd.print(mainMenuOptions[mainMenuLocation - mainMenuScroll]);
+      }
     }
     // Write the current temperature in the last 5 characters
     if (avTemp >= 100) {
-      lcd.setCursor(14,3); //Move to last 5 characters
+      lcd.setCursor(12,3); //Move to last 8 characters
     } else {
-      lcd.setCursor(15,3); //Move to last 5 characters
+      lcd.setCursor(13,3); //Move to last 7 characters
     }
     lcd.print(String(avTemp, LCD_TEMPERATURE_DECIMALS - 1));
+    lcd.print(" C");
     drawAgain = false;
   }
 }

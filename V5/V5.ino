@@ -8,20 +8,21 @@
 //Board: Arduino Genuino Micro
 //Programmer: AVR ISP
 //Pins:
-//  13 - SSR for Heat
-//  12 - SSR for Fan
-//   2 - OneWire Bus
 //   4 - Up Button
 //   5 - Down Button
 //   6 - Left Button
 //   7 - Right Button
 //   8 - Select Button
+//   9 - Piezo Speaker
+//  10 - OneWire Bus
+//  12 - SSR for Heat
+//  13 - SSR for Fan
 /*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%*%**%*%*%*%*%*%*%*%*%*%*/
 
 // Define some global constants
-
 #define ONE_WIRE_BUS 10
 #define TEMPERATURE_PRECISION 11
+#define SPEAKER_PIN 9
 #define UP_PIN 4
 #define DOWN_PIN 5
 #define LEFT_PIN 6
@@ -37,6 +38,9 @@ const int MENU_FAN_TEMPERATURE = 50; // in C, The temperature that the fan will 
 const double DOOR_OPEN_TRIGGER_SLOPE = -2.0; // in C, The temperature slope that will trigger the door open flag
 #define LCD_COLS 20
 #define LCD_ROWS 4
+
+#define BEEP_ON_INTERVAL 500
+#define BEEP_OFF_INTERVAL 500
 
 //TODO: What are these magic numbers?
 LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);  // Set the LCD I2C address
@@ -296,9 +300,23 @@ void loadLeadFreeProfile() {
 
 ////////// Beep
 
-// Beeps using the speaker on the LCD
+unsigned long beepStart = 0;
+boolean beepOn = false;
+
+// Beeps the speaker
 void beep() {
-  //TODO figure out how to use the p. speaker
+  unsigned long now = millis();
+  if (beepOn) {
+    if (now - beepStart > BEEP_ON_INTERVAL) {
+      noTone(SPEAKER_PIN);
+      beepStart = now;
+    }
+  } else {
+    if (now - beepStart > BEEP_OFF_INTERVAL) {
+      tone(SPEAKER_PIN, 880);
+      beepStart = now;
+    }
+  }
 }
 
 ////////// Apply Profile

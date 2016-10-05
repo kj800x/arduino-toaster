@@ -313,7 +313,7 @@ void beep() {
     }
   } else {
     if (now - beepStart > BEEP_OFF_INTERVAL) {
-      tone(SPEAKER_PIN, 880);
+      tone(SPEAKER_PIN, 2500);
       beepStart = now;
     }
   }

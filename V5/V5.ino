@@ -225,7 +225,8 @@ void collectData() {
       tempSlope = (avTemp - lastTempReading) / (tempInterval / 1000.0);
       if (tempSlope < DOOR_OPEN_TRIGGER_SLOPE) {
         doorOpenDetected = true;
-      }  
+        Serial.print("IT FUCKING CHANGED!!!!!");
+      } 
     }
     if ((tempI - tempO > MAX_ALLOWED_TEMP_DIFF) || (tempI - tempO < -MAX_ALLOWED_TEMP_DIFF)) {
       err = true;
@@ -563,7 +564,7 @@ void watchTempDuringMenu() {
 
 // The main loop
 void loop() {
-  Serial.println(tempSlope);
+  //Serial.println(tempSlope);
   // put your main code here, to run repeatedly:
   buttonRefresh();
   if (mainState == menu) {

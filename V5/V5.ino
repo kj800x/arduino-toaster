@@ -564,7 +564,6 @@ void watchTempDuringMenu() {
 
 // The main loop
 void loop() {
-  //Serial.println(tempSlope);
   // put your main code here, to run repeatedly:
   buttonRefresh();
   if (mainState == menu) {

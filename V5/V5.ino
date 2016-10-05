@@ -563,6 +563,7 @@ void watchTempDuringMenu() {
 
 // The main loop
 void loop() {
+  Serial.println(tempSlope);
   // put your main code here, to run repeatedly:
   buttonRefresh();
   if (mainState == menu) {
@@ -586,7 +587,7 @@ void loop() {
     displayToLCD();   // Puts the current temperature on the LCD
     logToUSBSerial(); // Logs data to the USB serial conneciton
     handleSSRs();     // Pulses the fan and heat SSRs according to global variables
-  }
+  } 
 
   // A note for this next bit of code
   // This is necessary because the following can happen:

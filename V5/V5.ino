@@ -393,7 +393,7 @@ void applyProfile() {
       break; // End profileStage 4  
     case OPEN: // Venting (Door open)
       if (avTemp > 50) { // While temp is more than 50 C
-        if (tempSlope < -2.0) {
+        if (doorOpenDetected) {
           displayDoorMessage = false;
         } else {
           beep();

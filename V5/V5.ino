@@ -210,7 +210,6 @@ boolean err;
 // A function to collect thermometer readings and update the global variables
 // Set globals: avTemp
 void collectData() {
-  
   unsigned long now = millis();
   double lastAvg = avTemp;
   if (lastTempTime + tempInterval < now) {
@@ -222,9 +221,11 @@ void collectData() {
     tempI = sensors.getTempC(insideThermometer);
     tempO = sensors.getTempC(outsideThermometer);
     avTemp = (tempI + tempO)/2;
-    tempSlope = (avTemp - lastTempReading) / (tempInterval / 1000.0);
-    if (tempSlope < DOOR_OPEN_TRIGGER_SLOPE) {
-      doorOpenDetected = true;
+    if (avTemp != lastTempReading) {
+      tempSlope = (avTemp - lastTempReading) / (tempInterval / 1000.0);
+      if (tempSlope < DOOR_OPEN_TRIGGER_SLOPE) {
+        doorOpenDetected = true;
+      }  
     }
     if ((tempI - tempO > MAX_ALLOWED_TEMP_DIFF) || (tempI - tempO < -MAX_ALLOWED_TEMP_DIFF)) {
       err = true;
@@ -235,7 +236,6 @@ void collectData() {
       drawAgain = true;
     }
   }
-//  drawAgain = true;
 }
 
 ////////// Load Profile

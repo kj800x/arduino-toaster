@@ -41,6 +41,7 @@ const double DOOR_OPEN_TRIGGER_SLOPE = -2.0; // in C, The temperature slope that
 
 #define BEEP_ON_INTERVAL 500
 #define BEEP_OFF_INTERVAL 500
+#define BEEP_FREQUENCY 880
 
 //TODO: What are these magic numbers?
 LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);  // Set the LCD I2C address
@@ -254,6 +255,29 @@ int RAMP_START_TEMP; // In C, the temperature where SOAK turns into RAMP
 int COOL_START_TEMP; // In C, the temperature where RAMP turns into COOL
 int OPEN_START_TIME; // Number of seconds after which COOL turns into OPEN
 
+
+// Load the test profile
+void loadTestProfile() {
+  Serial.println("Loading Test Profile");
+  PRHT_H_DUTY_ON = 2000;
+  PRHT_H_DUTY_OFF = 250;
+  SOAK_H_DUTY_ON = 2000;
+  SOAK_H_DUTY_OFF = 2000;
+  RAMP_H_DUTY_ON = 100;
+  RAMP_H_DUTY_OFF = 0;
+  COOL_F_DUTY_ON = 100;
+  COOL_F_DUTY_OFF = 0;
+  
+  SOAK_START_TEMP = 90;
+  RAMP_START_TEMP = 110;
+  COOL_START_TEMP = 150;
+  OPEN_START_TIME = 60;
+
+  runType = "TEST";
+  mainState = run;
+  profileStage = PRHT;
+}
+
 // Load the Lead profile
 void loadLeadProfile() {
   Serial.println("Loading Lead Profile");
@@ -300,23 +324,20 @@ void loadLeadFreeProfile() {
 
 ////////// Beep
 
-unsigned long beepStart = 0;
+unsigned long lastBeep = 0;
 boolean beepOn = false;
 
 // Beeps the speaker
 void beep() {
   unsigned long now = millis();
-  if (beepOn) {
-    if (now - beepStart > BEEP_ON_INTERVAL) {
-      noTone(SPEAKER_PIN);
-      beepStart = now;
-    }
-  } else {
-    if (now - beepStart > BEEP_OFF_INTERVAL) {
-      tone(SPEAKER_PIN, 2500);
-      beepStart = now;
-    }
+  if (now - lastBeep > 1000) {
+    tone(SPEAKER_PIN, BEEP_FREQUENCY, 500); 
+    lastBeep = now;
   }
+}
+
+void noBeep() {
+  noTone(SPEAKER_PIN);
 }
 
 ////////// Apply Profile
@@ -396,7 +417,6 @@ void applyProfile() {
         if (doorOpenDetected) {
           displayDoorMessage = false;
         } else {
-          beep();
           displayDoorMessage = true;
         }
         heatPowered = false;
@@ -404,7 +424,6 @@ void applyProfile() {
         fanDutyOn = COOL_F_DUTY_ON;
         fanDutyOff = COOL_F_DUTY_OFF; // Duty cycle of [100 ms on | 0 ms off] (never turns off)
         stage = "OPEN";
-        displayDoorMessage = true;
       } else {
         profileStage++;
         stageStartTime = now;
@@ -429,6 +448,9 @@ void displayToLCD() {
     if (displayDoorMessage) {
       lcd.setCursor(0,1);
       lcd.print("OPEN THE DOOR");
+      beep();
+    } else {
+      noBeep();
     }
     lcd.home();
     lcd.print(String(avTemp, LCD_TEMPERATURE_DECIMALS));
@@ -437,8 +459,8 @@ void displayToLCD() {
       lcd.print(" ");
     }
     lcd.setCursor(16,0);
-    lcd.print(stage);
-    if (err) {
+    lcd.print(stage); // We expect large discrepancies in OPEN/COOL
+    if (err && stage != "OPEN" && stage != "COOL") { 
       lcd.setCursor(0,1); //Move to second line
       lcd.print("!!ERROR!!");
     }
@@ -472,10 +494,17 @@ void logToUSBSerial() {
     Serial.print(tempI - tempO);
     Serial.print(" | ");
     Serial.print(String(tempSlope, 2));
-    if (err) {
+    if (err && stage != "OPEN" && stage != "COOL") {
       Serial.print(" | ");
       Serial.print("ERROR");
     }
+    Serial.print(" | ");
+    Serial.print(stage);
+    Serial.print("(");
+    Serial.print(doorOpenDetected);
+    Serial.print(")(");
+    Serial.print(tempSlope < -2.0);
+    Serial.print(")");
     Serial.println();
     lastLogTime = now;
   }
@@ -557,6 +586,7 @@ void watchTempDuringMenu() {
     digitalWrite(FanPin, LOW);
   }
   displayDoorMessage = false;
+  noBeep();
 }
 
 ////////// Loop
@@ -602,3 +632,4 @@ void loop() {
 
   clearPresses();
 }
+

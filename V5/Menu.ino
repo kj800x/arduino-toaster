@@ -1,8 +1,8 @@
 // The menu options
-char* mainMenuOptions[]={"Lead", "Lead-Free"/*, "Custom"*/};
+char* mainMenuOptions[]={"Lead", "Lead-Free", "Test"/*, "Custom"*/};
 
 // Make sure this matches the variable above
-const int MAIN_MENU_SIZE = 2; // Should be 3 if we re-enable the custom menu.
+const int MAIN_MENU_SIZE = 3; // Should be 3 if we re-enable the custom menu.
 
 // The current menu option
 int mainMenuLocation = 0;
@@ -37,6 +37,9 @@ void reactToButtons() {
     } else if (mainMenuLocation == 1) {
       //Lead-Free selected
       loadLeadFreeProfile();
+    } else if (mainMenuLocation == 2) {
+      //Lead-Free selected
+      loadTestProfile();
     } else if (mainMenuLocation == 2) {
       // Go to the custom template menu
       customTemplateMenuInit();
@@ -78,3 +81,4 @@ void displayMenu() {
     drawAgain = false;
   }
 }
+

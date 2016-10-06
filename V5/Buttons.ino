@@ -222,3 +222,4 @@ void clearPresses() {
   unreadRightPress = false;
   unreadSelectPress = false;
 }
+

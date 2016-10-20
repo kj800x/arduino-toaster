@@ -260,7 +260,7 @@ int OPEN_START_TIME; // Number of seconds after which COOL turns into OPEN
 void loadTestProfile() {
   Serial.println("Loading Test Profile");
   PRHT_H_DUTY_ON = 2000;
-  PRHT_H_DUTY_OFF = 250;
+  PRHT_H_DUTY_OFF = 0;
   SOAK_H_DUTY_ON = 2000;
   SOAK_H_DUTY_OFF = 2000;
   RAMP_H_DUTY_ON = 100;
@@ -271,7 +271,7 @@ void loadTestProfile() {
   SOAK_START_TEMP = 90;
   RAMP_START_TEMP = 110;
   COOL_START_TEMP = 150;
-  OPEN_START_TIME = 60;
+  OPEN_START_TIME = 10;
 
   runType = "TEST";
   mainState = run;
@@ -364,6 +364,7 @@ void applyProfile() {
         heatDutyOn = PRHT_H_DUTY_ON;
         heatDutyOff = PRHT_H_DUTY_OFF;
         fanPowered = false;
+        doorOpenDetected = false;
         stage = "PRHT";
         doorOpenDetected = false;
       } else {
@@ -377,6 +378,7 @@ void applyProfile() {
         heatDutyOn = SOAK_H_DUTY_ON;
         heatDutyOff = SOAK_H_DUTY_OFF; // Duty cycle of [2000 ms on | 510 ms off]
         fanPowered = false;
+        doorOpenDetected = false;
         stage = "SOAK";
       } else {
         profileStage++;
@@ -389,6 +391,7 @@ void applyProfile() {
         heatDutyOn = RAMP_H_DUTY_ON;
         heatDutyOff = RAMP_H_DUTY_OFF; // Duty cycle of [100 ms on | 0 ms off] (never turns off)
         fanPowered = false;
+        doorOpenDetected = false;
         stage = "RAMP";
       } else {
         profileStage++;

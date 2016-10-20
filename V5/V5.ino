@@ -611,6 +611,7 @@ void loop() {
     collectData();    // Refreshes temperature readings
     if (wasSelectPressed()) { // Go back to menu mode
       mainMenuInit();
+      Serial.println("FUCKFUCKFUCKFUCK");
     }
     applyProfile();   // Sets global variables for handleSSRs;
     displayToLCD();   // Puts the current temperature on the LCD

@@ -194,8 +194,15 @@ void setup() {
   lcd.home();
   lcd.noAutoscroll();
   lcd.noCursor();
-  lcd.print("Let's Get Toasty!"); 
-  delay(3000);/*
+  lcd.print("Let's Get Toasty!");
+  delay(3000);
+  tone(SPEAKER_PIN, 880);
+  delay(500);
+  tone(SPEAKER_PIN, 988);
+  delay(500);
+  tone(SPEAKER_PIN, 1318);
+  delay(500);
+  noTone(SPEAKER_PIN);/*
   lcd.createChar(scrollbarTop,    scrollbarTop_data);
   lcd.createChar(scrollbarS1,     scrollbarS1_data);
   lcd.createChar(scrollbarS2,     scrollbarS2_data);
@@ -282,17 +289,17 @@ void loadTestProfile() {
 void loadLeadProfile() {
   Serial.println("Loading Lead Profile");
   PRHT_H_DUTY_ON = 2000;
-  PRHT_H_DUTY_OFF = 250;
+  PRHT_H_DUTY_OFF = 100;
   SOAK_H_DUTY_ON = 2000;
-  SOAK_H_DUTY_OFF = 510;
+  SOAK_H_DUTY_OFF = 1000;
   RAMP_H_DUTY_ON = 100;
   RAMP_H_DUTY_OFF = 0;
   COOL_F_DUTY_ON = 100;
   COOL_F_DUTY_OFF = 0;
   
-  SOAK_START_TEMP = 100;
-  RAMP_START_TEMP = 150;
-  COOL_START_TEMP = 230;
+  SOAK_START_TEMP = 150;
+  RAMP_START_TEMP = 180;
+  COOL_START_TEMP = 215;
   OPEN_START_TIME = 120;
 
   runType = "Lead";
@@ -614,6 +621,7 @@ void loop() {
     collectData();    // Refreshes temperature readings
     if (wasSelectPressed()) { // Go back to menu mode
       mainMenuInit();
+      Serial.println("FUCKFUCKFUCKFUCK");
     }
     applyProfile();   // Sets global variables for handleSSRs;
     displayToLCD();   // Puts the current temperature on the LCD

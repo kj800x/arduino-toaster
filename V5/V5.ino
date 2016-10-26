@@ -226,20 +226,20 @@ void collectData() {
   }
   if (sensors.isConversionAvailable(insideThermometer) && sensors.isConversionAvailable(outsideThermometer)){
     lastTempReading = avTemp;
-    tempI = sensors.getTempC(insideThermometer);
+    //tempI = sensors.getTempC(insideThermometer);
     tempO = sensors.getTempC(outsideThermometer);
-    avTemp = (tempI + tempO)/2;
+    avTemp = tempO;//(tempI + tempO)/2;
     if (avTemp != lastTempReading) {
       tempSlope = (avTemp - lastTempReading) / (tempInterval / 1000.0);
       if (tempSlope < DOOR_OPEN_TRIGGER_SLOPE) {
         doorOpenDetected = true;
       } 
     }
-    if ((tempI - tempO > MAX_ALLOWED_TEMP_DIFF) || (tempI - tempO < -MAX_ALLOWED_TEMP_DIFF)) {
-      err = true;
-    } else {
-      err = false;
-    }
+    //if ((tempI - tempO > MAX_ALLOWED_TEMP_DIFF) || (tempI - tempO < -MAX_ALLOWED_TEMP_DIFF)) {
+    //  err = true;
+    //} else {
+    //  err = false;
+   // }
     if (lastAvg != avTemp){
       drawAgain = true;
     }

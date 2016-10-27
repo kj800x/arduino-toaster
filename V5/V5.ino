@@ -8,11 +8,11 @@
 //Board: Arduino Genuino Micro
 //Programmer: AVR ISP
 //Pins:
-//   4 - Up Button
-//   5 - Down Button
-//   6 - Left Button
-//   7 - Right Button
-//   8 - Select Button
+//   4 - Up Button (White Wire)
+//   5 - Down Button (Red Wire)
+//   6 - Left Button (Yellow Wire)
+//   7 - Right Button (Blue Wire)
+//   8 - Select Button (Purple Wire)
 //   9 - Piezo Speaker
 //  10 - OneWire Bus
 //  12 - SSR for Heat

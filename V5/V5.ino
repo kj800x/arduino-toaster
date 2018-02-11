@@ -43,6 +43,8 @@ const double DOOR_OPEN_TRIGGER_SLOPE = -2.0; // in C, The temperature slope that
 #define BEEP_OFF_INTERVAL 500
 #define BEEP_FREQUENCY 880
 
+#define EMERGENCY_SLOPE 20
+
 //TODO: What are these magic numbers?
 LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);  // Set the LCD I2C address
 
@@ -195,7 +197,7 @@ void setup() {
   lcd.noAutoscroll();
   lcd.noCursor();
   lcd.print("Let's Get Toasty!");
-  delay(3000);
+  delay(1000);
   tone(SPEAKER_PIN, 880);
   delay(500);
   tone(SPEAKER_PIN, 988);
@@ -226,20 +228,23 @@ void collectData() {
   }
   if (sensors.isConversionAvailable(insideThermometer) && sensors.isConversionAvailable(outsideThermometer)){
     lastTempReading = avTemp;
-    //tempI = sensors.getTempC(insideThermometer);
+    tempI = sensors.getTempC(insideThermometer);
     tempO = sensors.getTempC(outsideThermometer);
-    avTemp = tempO;//(tempI + tempO)/2;
+    avTemp = (tempI + tempO)/2;
     if (avTemp != lastTempReading) {
       tempSlope = (avTemp - lastTempReading) / (tempInterval / 1000.0);
       if (tempSlope < DOOR_OPEN_TRIGGER_SLOPE) {
         doorOpenDetected = true;
       } 
+      if (tempSlope < -EMERGENCY_SLOPE || tempSlope > EMERGENCY_SLOPE) {
+        err = false;  
+      }
     }
-    //if ((tempI - tempO > MAX_ALLOWED_TEMP_DIFF) || (tempI - tempO < -MAX_ALLOWED_TEMP_DIFF)) {
-    //  err = true;
-    //} else {
-    //  err = false;
-   // }
+    if ((tempI - tempO > MAX_ALLOWED_TEMP_DIFF) || (tempI - tempO < -MAX_ALLOWED_TEMP_DIFF)) {
+      err = true;
+    } else {
+      err = false;
+    }
     if (lastAvg != avTemp){
       drawAgain = true;
     }
@@ -336,10 +341,18 @@ boolean beepOn = false;
 
 // Beeps the speaker
 void beep() {
-  unsigned long now = millis();
-  if (now - lastBeep > 1000) {
-    tone(SPEAKER_PIN, BEEP_FREQUENCY, 500); 
-    lastBeep = now;
+  if (err) {
+    unsigned long now = millis();
+    if (now - lastBeep > 1000) {
+      tone(SPEAKER_PIN, 1200, 500); 
+      lastBeep = now;
+    }
+  } else {
+    unsigned long now = millis();
+    if (now - lastBeep > 1000) {
+      tone(SPEAKER_PIN, BEEP_FREQUENCY, 500); 
+      lastBeep = now;
+    }
   }
 }
 
@@ -458,9 +471,6 @@ void displayToLCD() {
     if (displayDoorMessage) {
       lcd.setCursor(0,1);
       lcd.print("OPEN THE DOOR");
-      beep();
-    } else {
-      noBeep();
     }
     lcd.home();
     lcd.print(String(avTemp, LCD_TEMPERATURE_DECIMALS));
@@ -470,7 +480,7 @@ void displayToLCD() {
     }
     lcd.setCursor(16,0);
     lcd.print(stage); // We expect large discrepancies in OPEN/COOL
-    if (err && stage != "OPEN" && stage != "COOL") { 
+    if (err && stage != "OPEN" && stage != "COOL") {
       lcd.setCursor(0,1); //Move to second line
       lcd.print("!!ERROR!!");
     }
@@ -596,7 +606,6 @@ void watchTempDuringMenu() {
     digitalWrite(FanPin, LOW);
   }
   displayDoorMessage = false;
-  noBeep();
 }
 
 ////////// Loop
@@ -621,13 +630,18 @@ void loop() {
     collectData();    // Refreshes temperature readings
     if (wasSelectPressed()) { // Go back to menu mode
       mainMenuInit();
-      Serial.println("FUCKFUCKFUCKFUCK");
     }
     applyProfile();   // Sets global variables for handleSSRs;
     displayToLCD();   // Puts the current temperature on the LCD
     logToUSBSerial(); // Logs data to the USB serial conneciton
     handleSSRs();     // Pulses the fan and heat SSRs according to global variables
-  } 
+  }
+
+  if (displayDoorMessage || err) {
+    beep();
+  } else {
+    noBeep();
+  }
 
   // A note for this next bit of code
   // This is necessary because the following can happen:

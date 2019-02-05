@@ -212,7 +212,7 @@ void setup() {
 }
 
 ////////// Collect Data
-long lastTempTime = -tempInterval;
+long lastTempTime = -tempInterval+1;
 boolean err;
 
 // A function to collect thermometer readings and update the global variables
@@ -228,6 +228,12 @@ void collectData() {
     lastTempReading = avTemp;
     tempI = sensors.getTempC(insideThermometer);
     tempO = sensors.getTempC(outsideThermometer);
+    /*Serial.print(tempI);
+    Serial.print(" ");
+    Serial.println(tempO);*/
+    if(tempI == NAN || tempO == NAN){
+      err = true;
+    }
     avTemp = (tempI + tempO)/2;
     if (avTemp != lastTempReading) {
       tempSlope = (avTemp - lastTempReading) / (tempInterval / 1000.0);
@@ -243,6 +249,9 @@ void collectData() {
     if (lastAvg != avTemp){
       drawAgain = true;
     }
+  }
+  else {
+  collectData();
   }
 }
 
@@ -299,7 +308,7 @@ void loadLeadProfile() {
   
   SOAK_START_TEMP = 150;
   RAMP_START_TEMP = 180;
-  COOL_START_TEMP = 215;
+  COOL_START_TEMP = 220;
   OPEN_START_TIME = 120;
 
   runType = "Lead";
@@ -321,7 +330,7 @@ void loadLeadFreeProfile() {
 
   SOAK_START_TEMP = 160;
   RAMP_START_TEMP = 205;
-  COOL_START_TEMP = 260;
+  COOL_START_TEMP = 248;
   OPEN_START_TIME = 180;
 
   runType = "Lead Free";
